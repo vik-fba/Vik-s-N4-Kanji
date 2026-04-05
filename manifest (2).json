@@ -1,0 +1,21 @@
+{
+  "name": "Vik's Kanji (N4)",
+  "short_name": "Vik's N4",
+  "description": "Free N4 kanji flashcard tool with SRS, quiz, and match modes. 163 kanji.",
+  "start_url": "/Vik-s-N4-Kanji/",
+  "display": "standalone",
+  "background_color": "#26292b",
+  "theme_color": "#1a5fa8",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
