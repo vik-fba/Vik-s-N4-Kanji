@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vik's Kanji (N4)</title>
+<meta name="description" content="Free N4 kanji flashcard tool with SRS, quiz, and match modes. 163 kanji.">
+<meta name="theme-color" content="#1a5fa8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vik's Kanji N4">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg1:#31353a;--bg2:#26292b;--txt1:#f0f0f0;--txt2:#a0a0a0;--txt3:#6a6a6a;
+  --brd1:rgba(255,255,255,0.4);--brd2:rgba(255,255,255,0.22);--brd3:rgba(255,255,255,0.10);
+  --bg-info:#0c3a6b;--txt-info:#85b7eb;--brd-info:#378add;
+  --bg-ok:#1a3a0a;--txt-ok:#97c459;--brd-ok:#639922;
+  --bg-err:#3a1010;--txt-err:#f09595;--brd-err:#e24b4a;
+  --bg-warn:#3a2000;--txt-warn:#fac775;--brd-warn:#ef9f27;
+  --rad:8px;--radlg:12px;--font:system-ui,-apple-system,sans-serif;
+  --cat-numbers:#18103a;--cat-numbers-brd:#a78bfa;
+  --cat-time:#001a2e;--cat-time-brd:#38bdf8;
+  --cat-people:#2e1200;--cat-people-brd:#fb923c;
+  --cat-body:#1a0020;--cat-body-brd:#e879f9;
+  --cat-nature:#001a08;--cat-nature-brd:#4ade80;
+  --cat-actions:#1a0a00;--cat-actions-brd:#fbbf24;
+  --cat-adjectives:#0a001a;--cat-adjectives-brd:#f472b6;
+  --cat-directions:#001a1a;--cat-directions-brd:#2dd4bf;
+  --cat-places:#00001a;--cat-places-brd:#818cf8;
+  --cat-question:#1a1400;--cat-question-brd:#a3e635;
+  --cat-school:#001a10;--cat-school-brd:#34d399;
+  --cat-work:#0e0e0e;--cat-work-brd:#d1d5db;
+}
+
+body{font-family:var(--font);color:var(--txt1);background:var(--bg2);min-height:100vh;padding:1rem}
+.app{max-width:720px;margin:0 auto;padding:.5rem 0}
+
+/* header */
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand-title{font-size:18px;font-weight:500}
+.brand-sub{font-size:12px;color:var(--txt3)}
+.mode-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{padding:5px 13px;border-radius:var(--rad);border:.5px solid var(--brd2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;transition:all .15s}
+.tab.active{background:var(--txt1);color:var(--bg1);border-color:var(--txt1)}
+.tab:hover:not(.active){background:var(--bg2)}
+
+/* filter */
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.9rem;align-items:center}
+.filter-label{font-size:12px;color:var(--txt2)}
+.filter-btn{padding:3px 10px;border-radius:var(--rad);border:.5px solid var(--brd3);background:transparent;color:var(--txt2);font-size:12px;cursor:pointer;transition:all .15s}
+.filter-btn.on{background:var(--bg2);color:var(--txt1);border-color:var(--brd1)}
+
+/* stats */
+.stats-row{display:flex;gap:8px;margin-bottom:.9rem;flex-wrap:wrap}
+.stat{background:var(--bg2);border-radius:var(--rad);padding:8px 14px;min-width:68px;text-align:center}
+.stat-n{font-size:20px;font-weight:500}
+.stat-l{font-size:11px;color:var(--txt2);margin-top:1px}
+.stat.good .stat-n{color:var(--txt-ok)}
+.stat.bad  .stat-n{color:var(--txt-err)}
+
+/* deck filter row */
+.deck-filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.7rem;align-items:center}
+
+/* kanji mosaic */
+.kanji-mosaic{display:flex;flex-wrap:wrap;gap:8px;margin-top:.4rem}
+.km-tile{width:112px;border-radius:var(--rad);border:2px solid var(--brd3);background:var(--bg1);
+  padding:10px 8px;text-align:center;cursor:pointer;user-select:none;transition:box-shadow .15s,transform .1s;flex-shrink:0}
+.km-tile:active{transform:scale(.96)}
+.km-tile[data-cat="numbers"]{background:var(--cat-numbers);border-color:var(--cat-numbers-brd)}
+.km-tile[data-cat="time"]{background:var(--cat-time);border-color:var(--cat-time-brd)}
+.km-tile[data-cat="people"]{background:var(--cat-people);border-color:var(--cat-people-brd)}
+.km-tile[data-cat="nature"]{background:var(--cat-nature);border-color:var(--cat-nature-brd)}
+.km-tile[data-cat="actions"]{background:var(--cat-actions);border-color:var(--cat-actions-brd)}
+.km-tile[data-cat="places"]{background:var(--cat-places);border-color:var(--cat-places-brd)}
+.km-tile[data-cat="adjectives"]{background:var(--cat-adjectives);border-color:var(--cat-adjectives-brd)}
+.km-tile[data-cat="body"]{background:var(--cat-body);border-color:var(--cat-body-brd)}
+.km-tile[data-cat="directions"]{background:var(--cat-directions);border-color:var(--cat-directions-brd)}
+.km-tile[data-cat="question"]{background:var(--cat-question);border-color:var(--cat-question-brd)}
+.km-tile[data-cat="school"]{background:var(--cat-school);border-color:var(--cat-school-brd)}
+.km-tile[data-cat="work"]{background:var(--cat-work);border-color:var(--cat-work-brd)}
+.km-tile.status-known{outline:3px solid var(--brd-ok)}
+.km-tile.status-learning{outline:3px solid var(--brd-err)}
+.km-k{font-size:32px;display:block;margin-bottom:4px;line-height:1}
+.km-mean{font-size:11px;font-weight:500;color:var(--txt1);display:block;margin-bottom:3px}
+.km-read{font-size:10px;color:var(--txt2);display:block;line-height:1.5}
+.km-badge{font-size:9px;margin-top:4px;display:inline-block;padding:2px 6px;border-radius:4px}
+.km-badge.b-known{background:var(--bg-ok);color:var(--txt-ok)}
+.km-badge.b-learning{background:var(--bg-err);color:var(--txt-err)}
+
+
+/* SRS */
+.srs-interval{font-size:11px;color:var(--txt3);display:block;margin-top:3px}
+.srs-lbl{display:block;font-size:10px;opacity:.65;margin-top:2px;font-weight:400}
+.btn .srs-lbl{color:inherit}
+
+/* slider */
+.slider-wrap{padding:0 2px}
+
+/* custom kanji select */
+.custom-select-grid{display:flex;flex-wrap:wrap;gap:6px;padding:.8rem;background:var(--bg1);
+  border-radius:var(--rad);border:.5px solid var(--brd3);margin-bottom:.6rem;max-height:200px;overflow-y:auto}
+.csg-tile{width:48px;height:48px;border-radius:var(--rad);border:.5px solid var(--brd2);background:var(--bg2);
+  display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all .13s;user-select:none}
+.csg-tile.selected{background:var(--txt1);color:var(--bg1);border-color:var(--txt1)}
+.csg-tile.status-known{border-color:var(--brd-ok);background:var(--bg-ok)}
+.csg-tile.status-learning{border-color:var(--brd-err)}
+#custom-panel{display:none}
+
+/* PWA install banner */
+.pwa-banner{position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:.5px solid var(--brd2);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:900;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+.pwa-banner.hidden{display:none}
+.pwa-banner-icon{font-size:28px;flex-shrink:0}
+.pwa-banner-text{flex:1;min-width:0}
+.pwa-banner-text strong{font-size:13px;display:block}
+.pwa-banner-text span{font-size:11px;color:var(--txt2)}
+.pwa-banner-close{background:none;border:none;font-size:18px;color:var(--txt3);cursor:pointer;padding:4px;flex-shrink:0}
+/* site header */
+.site-header{text-align:center;padding:.6rem 0 1rem}
+.site-name{font-size:13px;color:var(--txt3);text-decoration:none;letter-spacing:.04em;border-bottom:.5px solid var(--brd3);padding-bottom:1px;transition:color .15s}
+.site-name:hover{color:var(--txt2)}
+/* progress */
+.progress-wrap{margin-bottom:1.25rem}
+.progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.progress-lbl{font-size:11px;color:var(--txt3)}
+.progress-pct{font-size:11px;color:var(--txt3);font-weight:500}
+.progress-bar{height:4px;background:var(--brd3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--txt1);border-radius:2px;transition:width .3s}
+
+/* card */
+.card-wrap{perspective:1000px;margin-bottom:.9rem}
+.card{width:100%;min-height:280px;position:relative;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.4,0,.2,1);cursor:pointer}
+.card.flipped{transform:rotateX(180deg)}
+.card-face{position:absolute;width:100%;min-height:280px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radlg);border:.5px solid var(--brd3);background:var(--bg1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.75rem 1.5rem;transition:border-color .3s,box-shadow .3s}
+.card-face.status-known{border-color:var(--brd-ok);box-shadow:0 0 0 2px var(--brd-ok)}
+.card-face.status-learning{border-color:var(--brd-err);box-shadow:0 0 0 2px var(--brd-err)}
+.card-back{transform:rotateX(180deg)}
+.tap-hint{font-size:12px;color:var(--txt3);position:absolute;bottom:13px;left:0;right:0;text-align:center}
+.kanji-big{font-size:96px;line-height:1;margin-bottom:.4rem}
+.card-cat{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;display:none}
+.back-kanji{font-size:54px;line-height:1;margin-bottom:.6rem}
+.back-emoji{font-size:28px;margin-bottom:.4rem}
+.meaning{font-size:22px;font-weight:500;margin-bottom:.4rem;text-align:center}
+.readings{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-bottom:.6rem}
+.pill{padding:4px 12px;border-radius:var(--rad);font-size:13px;border:.5px solid var(--brd2)}
+.pill-on{background:var(--bg-info);color:var(--txt-info);border-color:var(--brd-info)}
+.pill-kun{background:var(--bg-ok);color:var(--txt-ok);border-color:var(--brd-ok)}
+.pill-lbl{font-size:10px;color:var(--txt3);text-align:center;margin-bottom:4px}
+.examples{font-size:12px;color:var(--txt2);text-align:center;line-height:1.9}
+.ex-meaning{font-size:11px;color:var(--txt3);text-align:center;margin-top:3px;line-height:1.7;font-style:italic}
+
+/* buttons */
+.actions{display:flex;gap:8px;justify-content:center;margin-bottom:.9rem}
+.btn{padding:8px 20px;border-radius:var(--rad);border:.5px solid var(--brd2);background:transparent;color:var(--txt1);font-size:14px;cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--txt1);color:var(--bg1);border-color:var(--txt1)}
+#save-btn.saved{background:var(--bg-ok);color:var(--txt-ok);border-color:var(--brd-ok)}
+.btn.ok   {background:var(--bg-ok);color:var(--txt-ok);border-color:var(--brd-ok)}
+.btn.err  {background:var(--bg-err);color:var(--txt-err);border-color:var(--brd-err)}
+.nav-row{display:flex;gap:8px;justify-content:center;align-items:center}
+.nav-btn{width:36px;height:36px;border-radius:var(--rad);border:.5px solid var(--brd2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--txt1)}
+.nav-btn:hover{background:var(--bg2)}
+.nav-pos{font-size:13px;color:var(--txt2);min-width:80px;text-align:center}
+
+/* settings row */
+.settings-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:.9rem;padding:10px 14px;background:var(--bg1);border-radius:var(--rad);border:.5px solid var(--brd3)}
+.settings-row label{font-size:13px;color:var(--txt2)}
+.settings-row input[type=number]{width:64px;padding:4px 8px;border-radius:var(--rad);border:.5px solid var(--brd2);background:transparent;color:var(--txt1);font-size:13px}
+.quiz-type-badge{font-size:12px;padding:3px 10px;border-radius:var(--rad);background:var(--bg-warn);color:var(--txt-warn);border:.5px solid var(--brd-warn)}
+
+/* checklist */
+#quiz-start-btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.checklist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.chk-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--rad);border:.5px solid var(--brd3);background:var(--bg1);font-size:13px;cursor:pointer;transition:background .13s;user-select:none}
+.chk-item:hover{background:var(--bg2)}
+.chk-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--txt1);flex-shrink:0}
+/* quiz */
+.panel{background:var(--bg1);border:.5px solid var(--brd3);border-radius:var(--radlg);padding:1.5rem;margin-bottom:.9rem}
+.quiz-prompt{font-size:13px;color:var(--txt2);margin-top:.4rem}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:.9rem}
+.opt-btn{padding:11px 14px;border-radius:var(--rad);border:.5px solid var(--brd2);background:var(--bg1);cursor:pointer;font-size:14px;text-align:left;transition:all .15s;color:var(--txt1);line-height:1.4}
+.opt-btn:hover:not([disabled]){background:var(--bg2)}
+.opt-btn.correct{background:var(--bg-ok);border-color:var(--brd-ok);color:var(--txt-ok)}
+.opt-btn.wrong{background:var(--bg-err);border-color:var(--brd-err);color:var(--txt-err)}
+.opt-kanji{font-size:26px;display:block;margin-bottom:3px}
+.quiz-prog{font-size:12px;color:var(--txt3);margin-top:.5rem;text-align:center}
+
+/* match */
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:.9rem}
+.match-col{display:flex;flex-direction:column;gap:6px}
+.match-item{padding:10px 13px;border-radius:var(--rad);border:.5px solid var(--brd2);background:var(--bg1);cursor:pointer;font-size:14px;transition:background .4s, border-color .4s, color .4s;text-align:center;color:var(--txt1)}
+.match-item:hover:not(.matched):not(.selected){background:var(--bg2)}
+.match-item.selected{border-color:var(--brd1);background:var(--bg2)}
+.match-item.matched{background:var(--bg-ok);border-color:var(--brd-ok);color:var(--txt-ok);pointer-events:none}
+.match-item.wrong{background:var(--bg-err);border-color:var(--brd-err);color:var(--txt-err)}
+.match-kanji{font-size:28px}
+
+/* result */
+.result-screen{text-align:center;padding:2.5rem 1rem}
+.result-big{font-size:52px;font-weight:500;margin-bottom:.4rem}
+.result-grid{display:flex;gap:12px;justify-content:center;margin:1rem 0 1.5rem}
+
+/* description */
+.description-strip{margin-top:1.5rem;padding:.6rem 1.25rem;background:var(--bg1);border:.5px solid var(--brd3);border-radius:var(--radlg);line-height:1.8}
+.description-strip p{font-size:13px;color:var(--txt2);margin-bottom:.4rem}
+.description-strip p:last-child{margin-bottom:0}
+.description-strip a{color:var(--txt-info);text-decoration:none}
+.level-link{display:inline-block;padding:4px 12px;border-radius:var(--rad);border:.5px solid var(--brd2);background:var(--bg2);color:var(--txt2);font-size:12px;cursor:pointer;opacity:.85;text-decoration:none}
+.level-link:hover{opacity:1;border-color:var(--brd1)}
+.cs-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
+.cs-overlay.open{display:flex}
+.cs-box{background:var(--bg1);border-radius:var(--radlg);border:.5px solid var(--brd2);padding:2rem;max-width:320px;width:90%;text-align:center}
+.cs-box .cs-icon{font-size:36px;margin-bottom:.6rem}
+.cs-box h3{font-size:16px;font-weight:500;margin-bottom:.4rem}
+.cs-box p{font-size:13px;color:var(--txt2);margin-bottom:1rem;line-height:1.6}
+.info-strip{background:var(--bg1);border:.5px solid var(--brd3);border-radius:var(--radlg);padding:.6rem 1.25rem;margin-top:1rem}
+.info-strip h3{font-size:14px;font-weight:500;margin-bottom:0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.info-strip h3 .toggle-arrow{font-size:11px;color:var(--txt3);transition:transform .2s}
+.info-strip h3.open .toggle-arrow{transform:rotate(180deg)}
+.info-strip-body{display:none}
+.info-strip-body.open{display:block}
+.info-strip-body p{font-size:12px;color:var(--txt2);line-height:1.8;margin-bottom:.4rem}
+.info-strip-body p:last-child{margin-bottom:0}
+.info-strip-body strong{color:var(--txt1)}
+.description-strip a:hover{text-decoration:underline}
+/* donate */
+.donate-strip{margin-top:1rem;padding:.6rem 1.25rem;background:var(--bg1);border:.5px solid var(--brd3);border-radius:var(--radlg);text-align:center}
+.donate-strip h3{font-size:15px;font-weight:500;margin-bottom:.3rem}
+.donate-strip p{font-size:13px;color:var(--txt2);margin-bottom:.8rem;line-height:1.6}
+.donate-btn{display:inline-block;padding:9px 22px;background:#0070ba;color:#fff;border-radius:var(--rad);font-size:14px;font-weight:500;text-decoration:none;border:none;cursor:pointer;transition:opacity .15s}
+.donate-btn:hover{opacity:.85}
+#notify-msg.ok{color:var(--txt-ok)}
+#notify-msg.err{color:var(--txt-err)}
+
+/* footer */
+.footer{margin-top:1.5rem;text-align:center;font-size:11px;color:var(--txt3);line-height:1.8}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── TOP BAR: share left, name pill right, scrolls with page ── -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+    <button id="share-btn" onclick="shareApp()" title="Share this tool" style="background:var(--bg1);border:.5px solid var(--brd2);border-radius:50px;padding:5px 14px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap">
+      &#128279; Share
+    </button>
+    <div id="user-pill" style="display:none;background:var(--bg1);border:.5px solid var(--brd2);border-radius:50px;padding:5px 14px 5px 10px;font-size:12px;cursor:pointer;align-items:center;gap:6px">
+      <span style="width:22px;height:22px;border-radius:50%;background:var(--bg-info);color:var(--txt-info);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500" id="user-avatar">?</span>
+      <span id="user-name-label">Guest</span>
+      <span style="color:var(--txt3);font-size:10px;margin-left:4px" onclick="renameUser(event)" title="Change name">&times;</span>
+    </div>
+  </div>
+
+  <div class="site-header">
+    <img src="data:image/png;base64,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EREBERAREQEREBEQckBMIiAo8ZHDmqiDiLXY977KtBHZ5LkTCDEYwmeKHmotKyKxWXUphBFeSqIMcq5VWJ5qZgIiyVGKc1ljuRBMK9SAJhZQ8/NQ9iqhWgzgID2qIApFZKFVCqMVW80AWQGEBUKK5WUVYnkrlTKClYkKorioAo8ZA48lkio7BpfXertLxegst5mgp+P6hwD48/yTwC5tRbRNa6ipXUtzvs7oHcHRRgRsd4huMrrBHegHesorBusAznCmFUQERDyWlQlFCq0cVlDOEKpCi0btZD3VEHJFkEREBERARE6kBERAREQEREBUe8PFRB7wQdgHIIg5BESOvn3iiH3yiGCIiKIivFEphRXihRTqUREBERBCipCLRqZVHJTCo5LILJQqICIiDEniosiOKmFaVR7qJxUIOFV1QiKZUqU61VjxTjhVQrILEd6yCmpuqhCuVFBOKEqqLQxVKEKqUYhZKdaySrUQK4TCVKDkskWJKgJlTKh5oYuU4IisIJniinWqrJEHJFnUEREBERARFcIlTCDgrhRFEWSxQEREBZLFUIIiIgIiICIiAiLJErFFfqnUiog94Ig95B2FuN0eCLFo9keCIPgH3iiH3yiAiKu5oGCnFRESCIiEEREUV6lESC4UREBByREBERAV6lEQFcKIiQUVQ8kIxKYVwqOSEY4TCyRDUAVRERcKrFEaEREBMIiBjiipUSC4VWKIkFCqoUViUVCoCCBVXCY4q0qI1MKjklKIiKAiIgIivFAdzTijuaiJBERFEREBUp1IUEVworlBEREBERARFSgYUVymUSIiIiiD3kT4kH32+6PBFWn2R4Iiuvn3iiH3iiIIiICIiAiIrFgiIogiIgIiICIiAiIgK8VEQEREBERWLBERRBERARERIIiIoiIgE4UyFVMIKiDkiAiIgcMKc1TyQBBiAcrJEQZDmsTyQ8kQEREBERAREQEREBERWLBERRBERAREQEREBERAREQEREBERAREQFPiCqdaDsA5BFGj2R4Iix8A+8UQ+8URBERAREQERFoERFkEREBERAREQEREBERAREQERFoERFkEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREWgREWQRZLFAREQEREBERAREQEREBERAREQE60TrQffafZHgiNHsjwREr4B94oh94oiiIiAiIOSAslCogIiICIiAiIiaKlMlOKIiIiLgiIiiIrlACqxRAREQEREBERAREQEREBERAREQFcIE4oAUREBERAREQEVymUTURXJVQxiiIiiIiAiIgIiICIiAiIgIrlMomoiIhgiIiiIiAiK5QCFFkiDFB7yKNPtBB2Bp9keCKjkEQde+JCofeKqAqoqOSaCK8UygiK5UQEREBERARXimUERXKiAiIgIiICK5TKMoOSpTKdSNIiIgIiIKE61FcoIiuVEBERAREQEWSnFAynWmVEBERAREQEREGSxVyogIiICIiAqVFeKCIOSuUyjKIiI0IiICIrlBEVyoeSAiIgIiICIiAivFMoIiIgI33x4ojeaDsA5BFG+6PBEYdeHvlZLEkb2Vd4I2qKZCZCCopkJvBBUUyEyEFRTITIQVFMjsKbw7CgqKbw7CmUFRTITeCCopkJvDvQVFN4dhTeHYUFRTe7im8EFRTeCbwQVFN4JvBBUUyEyEGTuaimUyEFRTeCZCCopkJlBUUym8EFRTe4cime4oKiZHemUBEyFMoKimQmQgqKZTIQVFMhN7uQVFMhXIQEUymUFRQuCZ7igqKZCZCCopkJkIKimQrlARMqZCCopkJkIKimQmQgqKZCZCCopkJlBUUyEz4oKimQmQgqg5pvBQEZQdhb7o8ERpG6OI5IhXAaCmz7n3VFBTfJ90RaZX1Cm+T7p6hTfJ90RTRDQU3yfdT1Cm+T7oigeoU3yfdPUKb5PuiLQeoU3yfdPUKb5PuiKa1oKCm+T7p6lT/ACfdETEw9Sp/k+6epU/yfdEVaX1Gm/D+6hoKb8P7oims6eoU3yfdPUaYcmfdEUQ9Sp/k+6epU/yfdERrOBoqf5PugoKb8P7oiAaCm/D+6hoKbP7390RAFBTfJ909Rpvk+6IgvqFN8n3Q0NN8n3RFcD1Kn+T7qeo034f3RFTT1Gm/D+6ooKb8P7oiyyeoU3yfdQUVN8n3REFNBTfJ91RQ02Pc+6IgGip/k+6nqFN8n3RFoPUKb5PunqFN8n3REaZeoU3yfdQ0FN8n3REZBQU3yfdQ0FNn3PuiIHqFN8n3T1Cm+T7oiyHqFN8n3T1Kn+T7oiLgaCmx+9/dPUKb5PuiIaeo0w5M+6eo0x5s+6ItLh6hTfJ90NDTfJ90RMU9Qpvk+6eoU3yfdEQ09Qpvk+6eoU3yfdEWWD1Cm+T7p6hTfJ90RA9Qpvk+6ooKbPufdEQT1Cm+T7p6hTfJ90RFw9Qpvk+6eoU3yfdEQ1RQU3yfdDQU3yfdERE9Qpvk+6eoU3yfdEQBQU34f3T1Cm+T7oiNKKCmz7n3Q0FN8n3RFplPUKb5PuqKGmz7nV2oiyuubdCIiI//2Q==" alt="Vik's 漢字 logo" style="height:72px;width:auto;border-radius:12px;display:block;margin:0 auto .5rem">
+    <a class="site-name" href="#" onclick="showCS('vikwebs.n5-kanji.com','This domain is coming soon! The site will live here once I buy the domain.');return false;">vikwebs.n5-kanji.com <span style="font-size:10px;opacity:.6">(coming soon)</span></a>
+  </div>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-title">🇯🇵 Vik's Kanji (N4)</div>
+      <div class="brand-sub" id="deck-info">163 kanji · All categories</div>
+    </div>
+    <div class="mode-tabs">
+      <button class="tab active" onclick="setMode('flash',this)">Flashcards</button>
+      <button class="tab" onclick="setMode('quiz',this)">Quiz</button>
+      <button class="tab" onclick="setMode('match',this)">Match</button>
+      <button class="tab" onclick="setMode('srs',this)">SRS</button>
+      <button class="tab" onclick="setMode('list',this)">All Kanji</button>
+    </div>
+  </div>
+
+  <div class="filter-row" id="cat-filter-row">
+    <span class="filter-label">Category:</span>
+    <button class="filter-btn on" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('numbers',this)">Numbers / Quantities</button>
+    <button class="filter-btn" onclick="setFilter('time',this)">Time</button>
+    <button class="filter-btn" onclick="setFilter('people',this)">People</button>
+    <button class="filter-btn" onclick="setFilter('body',this)">Body</button>
+    <button class="filter-btn" onclick="setFilter('nature',this)">Nature</button>
+    <button class="filter-btn" onclick="setFilter('actions',this)">Actions</button>
+    <button class="filter-btn" onclick="setFilter('adjectives',this)">Adjectives</button>
+    <button class="filter-btn" onclick="setFilter('directions',this)">Directions</button>
+    <button class="filter-btn" onclick="setFilter('places',this)">Places</button>
+    <button class="filter-btn" onclick="setFilter('school',this)">School</button>
+    <button class="filter-btn" onclick="setFilter('work',this)">Work</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">deck</div></div>
+    <div class="stat good"><div class="stat-n" id="s-know">0</div><div class="stat-l">known</div></div>
+    <div class="stat bad"><div class="stat-n" id="s-learn">0</div><div class="stat-l">learning</div></div>
+    <div class="stat"><div class="stat-n" id="s-streak">0</div><div class="stat-l">streak</div></div>
+  </div>
+
+  <div class="deck-filter-row" id="deck-filter-row">
+    <span class="filter-label">Study set:</span>
+    <button class="filter-btn on" id="ds-all"     onclick="setDeckFilter('all',this)">All (<span id="ds-all-n">163</span>)</button>
+    <button class="filter-btn"   id="ds-neutral"  onclick="toggleStatusFilter('neutral')">Neutral (<span id="ds-neutral-n">0</span>)</button>
+    <button class="filter-btn"   id="ds-learn"    onclick="toggleStatusFilter('learning')">Still learning (<span id="ds-learn-n">0</span>)</button>
+    <button class="filter-btn"   id="ds-known"    onclick="toggleStatusFilter('known')">Got it (<span id="ds-known-n">0</span>)</button>
+    <button class="filter-btn"   id="ds-custom"   onclick="setDeckFilter('custom',this)">Custom</button>
+  </div>
+
+  <div id="custom-panel">
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:6px">
+      Tap kanji to include in your custom deck:
+      <button class="btn" style="padding:2px 10px;font-size:12px;float:right" onclick="applyCustom()">Apply</button>
+    </div>
+    <div class="custom-select-grid" id="csg"></div>
+  </div>
+
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-meta">
+      <span class="progress-lbl" id="prog-label">Card 1 of 100</span>
+      <span class="progress-pct" id="prog-pct">1%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  </div>
+
+  <!-- ── FLASHCARD MODE ── -->
+  <div id="flash-mode">
+    <div class="card-wrap" id="card-wrap">
+      <div class="card" id="card" onclick="flipCard()">
+        <div class="card-face card-front">
+          <div class="card-cat" id="front-cat"></div>
+          <div class="kanji-big" id="front-kanji"></div>
+          <div class="tap-hint">tap to reveal</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="back-emoji" id="back-emoji"></div>
+          <div class="back-kanji" id="back-kanji"></div>
+          <div class="meaning" id="back-meaning"></div>
+          <div class="pill-lbl">readings</div>
+          <div class="readings" id="back-readings"></div>
+          <div class="examples" id="back-examples"></div>
+          <div class="ex-meaning" id="back-ex-meaning"></div>
+        </div>
+      </div>
+    </div>
+    <div class="actions" id="rate-btns" style="display:none">
+      <button class="btn" onclick="rate(false)">Still learning</button>
+      <button class="btn" onclick="rate(true)">Got it!</button>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prev()">&#8592;</button>
+      <div class="nav-pos" id="nav-pos">1 / 100</div>
+      <button class="nav-btn" onclick="next()">&#8594;</button>
+      <button class="btn" id="shuffle-btn" style="margin-left:8px" onclick="toggleShuffle()">Shuffle</button>
+      <button class="btn primary" id="unshuffle-btn" style="margin-left:4px;display:none" onclick="toggleShuffle()" title="Restore original order">&#8635; Unshuffle</button>
+      <button class="btn" id="save-btn" style="margin-left:8px" onclick="manualSave()" title="Save progress">&#128190; Save</button>
+    </div>
+    <div class="slider-wrap" id="slider-wrap">
+      <input type="range" id="card-slider" min="0" max="99" value="0"
+             oninput="sliderNav(this.value)" style="width:100%;margin-top:.6rem">
+    </div>
+  </div>
+
+  <!-- ── QUIZ MODE ── -->
+  <div id="quiz-mode" class="hidden">
+    <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label for="quiz-count">Questions per session:</label>
+        <input type="number" id="quiz-count" value="10" min="1" max="100">
+        <button class="btn" id="quiz-start-btn" onclick="startQuiz()">Start</button>
+        <span class="quiz-type-badge" id="quiz-type-badge"></span>
+      </div>
+      <div style="width:100%">
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <span>Quiz types <span style="color:var(--txt3)">(select one or more)</span></span>
+          <span style="display:flex;gap:6px">
+            <button class="btn" style="padding:3px 10px;font-size:12px" onclick="checkAll()">All</button>
+            <button class="btn" style="padding:3px 10px;font-size:12px" onclick="checkNone()">None</button>
+          </span>
+        </div>
+        <div class="checklist-grid" id="quiz-type-checklist">
+          <label class="chk-item"><input type="checkbox" value="0" checked> Kanji → Meaning</label>
+          <label class="chk-item"><input type="checkbox" value="2" checked> Meaning → Kanji</label>
+          <label class="chk-item"><input type="checkbox" value="rk" checked> Readings → Kanji</label>
+          <label class="chk-item"><input type="checkbox" value="kr" checked> Kanji → Readings</label>
+          <label class="chk-item"><input type="checkbox" value="3on"> ON reading → Kanji</label>
+          <label class="chk-item"><input type="checkbox" value="1on"> Kanji → ON reading</label>
+          <label class="chk-item"><input type="checkbox" value="3kun"> KUN reading → Kanji</label>
+          <label class="chk-item"><input type="checkbox" value="1kun"> Kanji → KUN reading</label>
+        </div>
+      </div>
+    </div>
+    <div id="quiz-game" class="hidden">
+      <div class="panel" style="text-align:center">
+        <div class="card-cat" id="q-cat"></div>
+        <div id="q-stimulus" style="font-size:76px;line-height:1;margin:.3rem 0 .4rem"></div>
+        <div class="quiz-prompt" id="q-prompt"></div>
+        <div class="quiz-opts" id="q-opts"></div>
+        <div class="quiz-prog" id="q-prog"></div>
+      </div>
+      <div style="text-align:center;margin-bottom:.9rem">
+        <button class="btn" onclick="skipQuiz()">Skip</button>
+        <button class="btn" style="margin-left:6px" onclick="endQuiz()">End session</button>
+      </div>
+    </div>
+    <div id="quiz-start-hint" style="text-align:center;padding:2rem;font-size:14px;color:var(--txt2)">
+      Set the number of questions above and press Start.
+    </div>
+  </div>
+
+  <!-- ── MATCH MODE ── -->
+  <div id="match-mode" class="hidden">
+    <div class="settings-row">
+      <label for="match-count">Pairs per round:</label>
+      <input type="number" id="match-count" value="6" min="1" max="10">
+      <button class="btn" onclick="newMatchRound()">New round</button>
+    </div>
+    <div id="match-game">
+      <div class="panel">
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:.5rem;text-align:center">Match each kanji to its meaning</div>
+        <div class="match-grid">
+          <div class="match-col" id="match-kanji-col"></div>
+          <div class="match-col" id="match-mean-col"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SRS MODE ── -->
+  <div id="srs-mode" class="hidden">
+    <div class="panel" style="text-align:center;padding:1.2rem 1rem .8rem">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:.4rem" id="srs-queue-info"></div>
+      <div style="font-size:11px;color:var(--txt3)" id="srs-next-info"></div>
+    </div>
+    <div class="card-wrap">
+      <div class="card" id="srs-card" onclick="flipSRS()">
+        <div class="card-face card-front">
+          <div class="card-cat" id="srs-front-cat"></div>
+          <div class="kanji-big" id="srs-front-kanji"></div>
+          <div class="tap-hint">tap to reveal</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="back-emoji" id="srs-back-emoji"></div>
+          <div class="back-kanji" id="srs-back-kanji"></div>
+          <div class="meaning" id="srs-back-meaning"></div>
+          <div class="pill-lbl">readings</div>
+          <div class="readings" id="srs-back-readings"></div>
+          <div class="examples" id="srs-back-examples"></div>
+          <div class="ex-meaning" id="srs-back-exm"></div>
+        </div>
+      </div>
+    </div>
+    <div class="actions" id="srs-rate-btns" style="display:none">
+      <button class="btn err"  onclick="rateSRS(1)"><span>Again</span><small id="srs-lbl-1" class="srs-lbl"></small></button>
+      <button class="btn"      onclick="rateSRS(2)"><span>Hard</span><small id="srs-lbl-2" class="srs-lbl"></small></button>
+      <button class="btn ok"   onclick="rateSRS(3)"><span>Good</span><small id="srs-lbl-3" class="srs-lbl"></small></button>
+      <button class="btn primary" onclick="rateSRS(4)"><span>Easy</span><small id="srs-lbl-4" class="srs-lbl"></small></button>
+    </div>
+    <div id="srs-done" class="hidden" style="text-align:center;padding:2rem;color:var(--txt2);font-size:14px">
+      <div id="srs-done-msg">Session complete!</div>
+      <div id="srs-next-available" class="hidden" style="margin-top:.5rem;font-size:13px;color:var(--txt-ok)"></div>
+      <br>
+      <button class="btn primary" style="margin-top:1rem" onclick="startSRS()">&#9654; Start next session</button>
+    </div>
+  </div>
+
+  <!-- ── LIST MODE ── -->
+  <div id="list-mode" class="hidden">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+      <span class="filter-btn on" id="list-status-all"   onclick="setListStatus('all',this)">All statuses</span>
+      <span class="filter-btn"    id="list-status-neutral" onclick="setListStatus('neutral',this)">Neutral</span>
+      <span class="filter-btn"    id="list-status-learn" onclick="setListStatus('learning',this)">Still learning</span>
+      <span class="filter-btn"    id="list-status-known" onclick="setListStatus('known',this)">Got it</span>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:.8rem">
+      Double-tap a kanji to cycle: neutral → still learning → got it → neutral
+    </div>
+    <div class="kanji-mosaic" id="kanji-mosaic"></div>
+  </div>
+
+  <!-- ── RESULT SCREEN ── -->
+  <div id="result-screen" class="hidden result-screen">
+    <div class="result-big" id="res-emoji"></div>
+    <div style="font-size:22px;font-weight:500;margin-bottom:.4rem" id="res-title"></div>
+    <div style="font-size:15px;color:var(--txt2);margin-bottom:.2rem" id="res-sub"></div>
+    <div class="result-grid" id="res-stats"></div>
+    <button class="btn primary" onclick="restartDeck()">Restart deck</button>
+    <button class="btn" style="margin-left:8px" onclick="reviewWeak()">Review weak kanji</button>
+  </div>
+
+  <!-- ── DESCRIPTION ── -->
+  <div class="description-strip">
+    <div style="font-size:15px;font-weight:500;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;user-select:none;margin-bottom:.6rem;text-align:center" onclick="toggleSection('desc-body','desc-arrow')">
+      📖 About this tool <span id="desc-arrow" style="font-size:11px;color:var(--txt3);transition:transform .2s">▼</span>
+    </div>
+    <div id="desc-body" style="display:none">
+    <p>This N4 kanji tool was made with the intention of helping you learn the N4 kanji in a fun and efficient way.</p>
+    <p style="margin-top:.6rem;font-weight:500;font-size:13px;color:var(--txt1)">More kanji levels:</p>
+    <p style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.2rem">
+      <a href="https://vik-fba.github.io/Vik-s-N5-Kanji-v2/" class="level-link" target="_blank" rel="noopener">N5 Kanji</a>
+      <a href="#" class="level-link" onclick="showCS('N3 Kanji','The N3 kanji tool is currently in development.');return false;">N3 Kanji</a>
+      <a href="#" class="level-link" onclick="showCS('N2 Kanji','The N2 kanji tool is currently in development.');return false;">N2 Kanji</a>
+      <a href="#" class="level-link" onclick="showCS('N1 Kanji','The N1 kanji tool is currently in development.');return false;">N1 Kanji</a>
+      <a href="#" class="level-link" onclick="showCS('All Jōyō Kanji','The full Jōyō kanji tool is currently in development.');return false;">All Jōyō Kanji</a>
+    </p>
+    <p>Check out more of my content at <a href="#" onclick="showCS('vikwebs.com','The main website is currently being set up. Come back soon!');return false;">vikwebs.com</a></p>
+    <p>You can contact me through my email: <a href="mailto:vikwebsadmin@gmail.com">vikwebsadmin@gmail.com</a></p>
+    <p>If you can, please consider supporting me so I can make more content and continue to improve my current work.</p>
+  </div><!-- /desc-body -->
+  </div>
+
+  <!-- ── MORE INFO ── -->
+  <div class="info-strip">
+    <h3 onclick="toggleInfo(this)" id="info-toggle" style="justify-content:center;gap:8px">
+      ℹ️ More information
+      <span class="toggle-arrow">▼</span>
+    </h3>
+    <div class="info-strip-body" id="info-body">
+      <p><strong>Version:</strong> This is version 1 of the N4 tool. It is a work in progress and will continue to be updated with new features and improvements.</p>
+      <p><strong>AI assistance:</strong> This tool was built with the help of AI. All content, design decisions, and educational intent are by Víctor Fernández Bravo Ahuja.</p>
+      <p><strong>Where is my data saved?</strong> Your progress (Got it / Still learning cards, SRS intervals, custom decks) is saved in your browser's <strong>localStorage</strong> — storage built into every browser tied to the URL you're visiting. It persists when you close the tab but will be lost if you clear your browser history or cache. Data is not shared between devices or browsers. If you sign in with an account, a per-account copy is also saved locally under your email key, but it is still local to that browser — not synced to a server.</p>
+      <p><strong>Privacy:</strong> No data is sent to any server. Everything stays on your device.</p>
+      <p style="margin-top:.6rem">
+        <button class="btn" style="font-size:12px;padding:5px 14px;color:var(--txt-err);border-color:var(--brd-err)" onclick="resetProgress()">Reset all progress</button>
+        <span style="font-size:11px;color:var(--txt3);margin-left:8px">Clears all Got it / Still learning / SRS data.</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── DONATE ── -->
+  <div class="donate-strip">
+    <h3 style="cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px;user-select:none" onclick="toggleSection('donate-body','donate-arrow')">
+      Support The Project 🥺 <span id="donate-arrow" style="font-size:11px;color:var(--txt3);transition:transform .2s">▼</span>
+    </h3>
+    <div id="donate-body" style="display:none">
+    <p>If this tool has helped you on your Japanese learning journey, please consider leaving a small donation — it goes a long way towards keeping this free and building more tools like it!</p>
+    <div style="background:var(--bg2);border-radius:var(--rad);padding:1rem;margin-bottom:.8rem;text-align:center">
+      <a href="https://form.jotform.com/260868394248875" target="_blank" rel="noopener" class="donate-btn">🔔 Notify me when donations are available</a>
+    </div>
+  </div><!-- /donate-body -->
+  </div>
+
+  <div class="footer">
+    Made with &#10084; by <strong>Víctor Fernández Bravo Ahuja</strong> &nbsp;·&nbsp; Vik's Kanji (N4) &nbsp;·&nbsp; 163 kanji
+  </div>
+
+  <!-- ── PWA INSTALL BANNER ── -->
+  <div class="pwa-banner hidden" id="pwa-banner">
+    <div class="pwa-banner-icon">📱</div>
+    <div class="pwa-banner-text">
+      <strong>Add to Home Screen</strong>
+      <span id="pwa-banner-msg">Tap Share → "Add to Home Screen" in Safari</span>
+    </div>
+    <button class="pwa-banner-close" onclick="dismissPWA()" aria-label="Dismiss">✕</button>
+  </div>
+
+  <!-- ── RENAME MODAL ── -->
+  <div id="rename-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:1001;align-items:center;justify-content:center">
+    <div style="background:var(--bg1);border-radius:var(--radlg);border:.5px solid var(--brd2);padding:1.5rem;width:90%;max-width:320px;text-align:center">
+      <div style="font-size:15px;font-weight:500;margin-bottom:.8rem">Change name</div>
+      <input type="text" id="rename-input" placeholder="New name" style="width:100%;margin-bottom:10px;padding:9px 12px;border-radius:var(--rad);border:.5px solid var(--brd2);background:var(--bg2);color:var(--txt1);font-size:14px">
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn primary" onclick="doRename()">Save</button>
+        <button class="btn" onclick="document.getElementById('rename-overlay').style.display='none'">Cancel</button>
+      </div>
+      <div id="rename-msg" style="font-size:12px;color:var(--txt-err);margin-top:8px;min-height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── COMING SOON MODAL ── -->
+  <div class="cs-overlay" id="cs-overlay" onclick="closeCS(event)">
+    <div class="cs-box">
+      <div class="cs-icon">🚧</div>
+      <h3 id="cs-title">Coming Soon</h3>
+      <p id="cs-msg">This section is currently being worked on. Check back soon!</p>
+      <button class="btn primary" onclick="document.getElementById('cs-overlay').classList.remove('open')">Got it</button>
+    </div>
+  </div>
+
+  <!-- ── LOGIN MODAL ── -->
+  <!-- ── LOCAL PROFILE MODAL ── -->
+  <div id="login-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:var(--bg1);border-radius:var(--radlg);border:.5px solid var(--brd2);padding:2rem;width:90%;max-width:380px;text-align:center">
+      <div style="font-size:36px;margin-bottom:.4rem">🇯🇵</div>
+      <div style="font-size:17px;font-weight:500;margin-bottom:.3rem">Vik's Kanji (N5)</div>
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:.5rem">Create a local profile to name your progress.</div>
+      <div style="font-size:11px;color:var(--txt3);background:var(--bg2);border-radius:var(--rad);padding:8px 12px;margin-bottom:1.2rem;line-height:1.7;text-align:left">
+        ⚠️ <strong>This is a local profile only.</strong> Your data is saved in this browser on this device. It is not synced to a server and will be lost if you clear your browser data.
+      </div>
+      <div id="login-form">
+        <input type="text" id="login-name" placeholder="Your name" style="width:100%;margin-bottom:12px;padding:9px 12px;border-radius:var(--rad);border:.5px solid var(--brd2);background:var(--bg2);color:var(--txt1);font-size:14px">
+        <button class="btn primary" style="width:100%;margin-bottom:10px" onclick="doLogin()">Start with this name</button>
+        <button class="btn" style="width:100%;font-size:13px" onclick="continueGuest()">Continue anonymously</button>
+        <div id="login-msg" style="font-size:12px;color:var(--txt-err);margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ── AUDIO ─────────────────────────────────────────────────── */
+const AC = window.AudioContext || window.webkitAudioContext;
+let ac;
+function getAC(){if(!ac){try{ac=new AC();}catch(e){}}return ac;}
+function beep(freq,dur,type,vol,decay){
+  const a=getAC();if(!a)return;
+  const o=a.createOscillator(),g=a.createGain();
+  o.connect(g);g.connect(a.destination);
+  o.type=type||'sine';o.frequency.value=freq;
+  g.gain.setValueAtTime(vol||0.25,a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+(dur||0.18));
+  o.start(a.currentTime);o.stop(a.currentTime+(decay||dur||0.18));
+}
+function sfxCorrect(){beep(660,0.08,'sine',0.22);setTimeout(()=>beep(880,0.12,'sine',0.18),90);}
+function sfxWrong(){beep(220,0.15,'sawtooth',0.18);setTimeout(()=>beep(180,0.15,'sawtooth',0.14),100);}
+function sfxFlip(){beep(500,0.06,'sine',0.1);}
+function sfxComplete(){
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.12,'sine',0.2),i*80));
+}
+
+/* ── DATA ───────────────────────────────────────────────────── */
+const KANJI=[
+  {k:"多",on:"た",kun:"おお",mean:"many / much",emoji:"📊",ex:"多い・多数",exm:"many · large number",cat:"numbers"},
+  {k:"少",on:"しょう",kun:"すく・すこ",mean:"few / little",emoji:"🔢",ex:"少ない・少し",exm:"few · a little",cat:"numbers"},
+  {k:"両",on:"りょう",kun:"—",mean:"both",emoji:"↔️",ex:"両方・両親",exm:"both sides · parents",cat:"numbers"},
+  {k:"第",on:"だい",kun:"—",mean:"ordinal prefix",emoji:"🔢",ex:"第一・第二",exm:"first · second",cat:"numbers"},
+  {k:"全",on:"ぜん",kun:"すべ・まった",mean:"all / whole",emoji:"💯",ex:"全部・全員",exm:"all · everyone",cat:"numbers"},
+  {k:"間",on:"かん・けん",kun:"あいだ・ま",mean:"interval / between",emoji:"⏳",ex:"時間・間違い",exm:"time · mistake",cat:"time"},
+  {k:"昨",on:"さく",kun:"—",mean:"yesterday / last",emoji:"📅",ex:"昨日・昨年",exm:"yesterday · last year",cat:"time"},
+  {k:"去",on:"きょ・こ",kun:"さ",mean:"last / past",emoji:"🔙",ex:"去年・去る",exm:"last year · to leave",cat:"time"},
+  {k:"近",on:"きん",kun:"ちか",mean:"near / recent",emoji:"📍",ex:"近い・近所",exm:"near · neighborhood",cat:"time"},
+  {k:"早",on:"そう",kun:"はや",mean:"early / fast",emoji:"🌅",ex:"早い・早起き",exm:"early · early rising",cat:"time"},
+  {k:"遅",on:"ち",kun:"おそ・おく",mean:"late / slow",emoji:"🐢",ex:"遅い・遅刻",exm:"slow · tardiness",cat:"time"},
+  {k:"始",on:"し",kun:"はじ",mean:"begin",emoji:"🚀",ex:"始まる・始める",exm:"to begin (vi) · to begin (vt)",cat:"time"},
+  {k:"終",on:"しゅう",kun:"お",mean:"end",emoji:"🏁",ex:"終わる・終電",exm:"to end · last train",cat:"time"},
+  {k:"続",on:"ぞく",kun:"つづ",mean:"continue",emoji:"▶️",ex:"続く・続ける",exm:"to continue (vi) · to continue (vt)",cat:"time"},
+  {k:"度",on:"ど",kun:"たび",mean:"degree / time",emoji:"🌡️",ex:"今度・一度",exm:"this time · once",cat:"time"},
+  {k:"当",on:"とう",kun:"あ",mean:"hit / current",emoji:"🎯",ex:"当たる・当日",exm:"to hit · that day",cat:"time"},
+  {k:"急",on:"きゅう",kun:"いそ",mean:"urgent / hurry",emoji:"⚡",ex:"急ぐ・急行",exm:"to hurry · express train",cat:"time"},
+  {k:"親",on:"しん",kun:"おや",mean:"parent",emoji:"👨‍👩‍👧",ex:"親・親切",exm:"parent · kindness",cat:"people"},
+  {k:"兄",on:"けい・きょう",kun:"あに",mean:"older brother",emoji:"👦",ex:"兄・兄弟",exm:"older brother · siblings",cat:"people"},
+  {k:"弟",on:"てい",kun:"おとうと",mean:"younger brother",emoji:"👦",ex:"弟・兄弟",exm:"younger brother · siblings",cat:"people"},
+  {k:"姉",on:"し",kun:"あね",mean:"older sister",emoji:"👧",ex:"姉・姉妹",exm:"older sister · sisters",cat:"people"},
+  {k:"妹",on:"まい",kun:"いもうと",mean:"younger sister",emoji:"👧",ex:"妹・姉妹",exm:"younger sister · sisters",cat:"people"},
+  {k:"祖",on:"そ",kun:"—",mean:"ancestor",emoji:"👴",ex:"祖父・祖母",exm:"grandfather · grandmother",cat:"people"},
+  {k:"夫",on:"ふ",kun:"おっと",mean:"husband",emoji:"💍",ex:"夫・夫人",exm:"husband · Mrs.",cat:"people"},
+  {k:"妻",on:"さい",kun:"つま",mean:"wife",emoji:"💍",ex:"妻・夫妻",exm:"wife · husband and wife",cat:"people"},
+  {k:"彼",on:"か・ひ",kun:"かれ",mean:"he / boyfriend",emoji:"👨",ex:"彼・彼女",exm:"he · she",cat:"people"},
+  {k:"皆",on:"かい",kun:"みな・みんな",mean:"everyone",emoji:"👥",ex:"皆さん・皆",exm:"everyone (polite) · everyone",cat:"people"},
+  {k:"自",on:"じ・し",kun:"みずか",mean:"self",emoji:"🪞",ex:"自分・自動",exm:"oneself · automatic",cat:"people"},
+  {k:"他",on:"た",kun:"ほか",mean:"other",emoji:"🔀",ex:"他人・その他",exm:"stranger · others",cat:"people"},
+  {k:"相",on:"そう・しょう",kun:"あい",mean:"mutual",emoji:"🤝",ex:"相手・相談",exm:"partner · consultation",cat:"people"},
+  {k:"様",on:"よう",kun:"さま",mean:"manner / -sama",emoji:"🎭",ex:"様子・お客様",exm:"situation · customer (polite)",cat:"people"},
+  {k:"顔",on:"がん",kun:"かお",mean:"face",emoji:"😊",ex:"顔・顔色",exm:"face · complexion",cat:"body"},
+  {k:"首",on:"しゅ",kun:"くび",mean:"neck",emoji:"🦒",ex:"首・首都",exm:"neck · capital city",cat:"body"},
+  {k:"声",on:"せい",kun:"こえ",mean:"voice",emoji:"🔊",ex:"声・声優",exm:"voice · voice actor",cat:"body"},
+  {k:"頭",on:"とう・ず",kun:"あたま",mean:"head",emoji:"🧠",ex:"頭・頭痛",exm:"head · headache",cat:"body"},
+  {k:"髪",on:"はつ",kun:"かみ",mean:"hair",emoji:"💇",ex:"髪・髪型",exm:"hair · hairstyle",cat:"body"},
+  {k:"歯",on:"し",kun:"は",mean:"tooth",emoji:"🦷",ex:"歯・歯医者",exm:"tooth · dentist",cat:"body"},
+  {k:"血",on:"けつ",kun:"ち",mean:"blood",emoji:"🩸",ex:"血・血液",exm:"blood · blood (formal)",cat:"body"},
+  {k:"病",on:"びょう",kun:"やまい",mean:"illness",emoji:"🤒",ex:"病気・病院",exm:"illness · hospital",cat:"body"},
+  {k:"痛",on:"つう",kun:"いた",mean:"pain",emoji:"🤕",ex:"痛い・頭痛",exm:"painful · headache",cat:"body"},
+  {k:"薬",on:"やく",kun:"くすり",mean:"medicine",emoji:"💊",ex:"薬・薬局",exm:"medicine · pharmacy",cat:"body"},
+  {k:"医",on:"い",kun:"—",mean:"doctor / medicine",emoji:"⚕️",ex:"医者・医学",exm:"doctor · medical science",cat:"body"},
+  {k:"森",on:"しん",kun:"もり",mean:"forest",emoji:"🌲",ex:"森・森林",exm:"forest · woodland",cat:"nature"},
+  {k:"林",on:"りん",kun:"はやし",mean:"grove",emoji:"🌳",ex:"林・林道",exm:"woods · forest path",cat:"nature"},
+  {k:"池",on:"ち",kun:"いけ",mean:"pond",emoji:"💧",ex:"池・池袋",exm:"pond · Ikebukuro",cat:"nature"},
+  {k:"島",on:"とう",kun:"しま",mean:"island",emoji:"🏝️",ex:"島・半島",exm:"island · peninsula",cat:"nature"},
+  {k:"石",on:"せき・しゃく",kun:"いし",mean:"stone",emoji:"🪨",ex:"石・石川",exm:"stone · Ishikawa",cat:"nature"},
+  {k:"地",on:"ち・じ",kun:"—",mean:"earth / ground",emoji:"🌍",ex:"地図・地下",exm:"map · underground",cat:"nature"},
+  {k:"湖",on:"こ",kun:"みずうみ",mean:"lake",emoji:"🌊",ex:"湖・湖畔",exm:"lake · lakeside",cat:"nature"},
+  {k:"星",on:"せい",kun:"ほし",mean:"star",emoji:"⭐",ex:"星・星座",exm:"star · constellation",cat:"nature"},
+  {k:"光",on:"こう",kun:"ひかり",mean:"light",emoji:"✨",ex:"光・光線",exm:"light · ray of light",cat:"nature"},
+  {k:"色",on:"しょく",kun:"いろ",mean:"colour",emoji:"🎨",ex:"色・色々",exm:"colour · various",cat:"nature"},
+  {k:"葉",on:"よう",kun:"は",mean:"leaf",emoji:"🍃",ex:"葉・紅葉",exm:"leaf · autumn leaves",cat:"nature"},
+  {k:"草",on:"そう",kun:"くさ",mean:"grass",emoji:"🌿",ex:"草・草原",exm:"grass · grassland",cat:"nature"},
+  {k:"鳥",on:"ちょう",kun:"とり",mean:"bird",emoji:"🐦",ex:"鳥・小鳥",exm:"bird · small bird",cat:"nature"},
+  {k:"魚",on:"ぎょ",kun:"さかな",mean:"fish",emoji:"🐟",ex:"魚・金魚",exm:"fish · goldfish",cat:"nature"},
+  {k:"動",on:"どう",kun:"うご",mean:"move",emoji:"🏃",ex:"動物・動く",exm:"animal · to move",cat:"nature"},
+  {k:"植",on:"しょく",kun:"う",mean:"plant",emoji:"🌱",ex:"植物・植える",exm:"plant · to plant",cat:"nature"},
+  {k:"使",on:"し",kun:"つか",mean:"use",emoji:"🔧",ex:"使う・使用",exm:"to use · usage",cat:"actions"},
+  {k:"待",on:"たい",kun:"ま",mean:"wait",emoji:"⏳",ex:"待つ・待合",exm:"to wait · waiting room",cat:"actions"},
+  {k:"持",on:"じ",kun:"も",mean:"hold / have",emoji:"✋",ex:"持つ・気持ち",exm:"to hold · feeling",cat:"actions"},
+  {k:"立",on:"りつ・りゅう",kun:"た",mean:"stand",emoji:"🧍",ex:"立つ・立場",exm:"to stand · standpoint",cat:"actions"},
+  {k:"座",on:"ざ",kun:"すわ",mean:"sit",emoji:"🪑",ex:"座る・座席",exm:"to sit · seat",cat:"actions"},
+  {k:"寝",on:"しん",kun:"ね",mean:"sleep",emoji:"😴",ex:"寝る・寝室",exm:"to sleep · bedroom",cat:"actions"},
+  {k:"着",on:"ちゃく",kun:"き・つ",mean:"wear / arrive",emoji:"👕",ex:"着る・到着",exm:"to wear · arrival",cat:"actions"},
+  {k:"脱",on:"だつ",kun:"ぬ",mean:"remove / escape",emoji:"👚",ex:"脱ぐ・脱出",exm:"to take off · escape",cat:"actions"},
+  {k:"洗",on:"せん",kun:"あら",mean:"wash",emoji:"🧼",ex:"洗う・洗濯",exm:"to wash · laundry",cat:"actions"},
+  {k:"開",on:"かい",kun:"ひら・あ",mean:"open",emoji:"🚪",ex:"開く・開ける",exm:"to open (vi) · to open (vt)",cat:"actions"},
+  {k:"閉",on:"へい",kun:"し・と",mean:"close",emoji:"🚫",ex:"閉まる・閉める",exm:"to close (vi) · to close (vt)",cat:"actions"},
+  {k:"押",on:"おう",kun:"お",mean:"push",emoji:"👇",ex:"押す・押入",exm:"to push · closet",cat:"actions"},
+  {k:"引",on:"いん",kun:"ひ",mean:"pull",emoji:"⬅️",ex:"引く・引越す",exm:"to pull · to move house",cat:"actions"},
+  {k:"運",on:"うん",kun:"はこ",mean:"carry / luck",emoji:"🚚",ex:"運ぶ・運動",exm:"to carry · exercise",cat:"actions"},
+  {k:"渡",on:"と",kun:"わた",mean:"cross / hand over",emoji:"🌉",ex:"渡る・渡す",exm:"to cross · to hand over",cat:"actions"},
+  {k:"止",on:"し",kun:"と・や",mean:"stop",emoji:"🛑",ex:"止まる・止める",exm:"to stop (vi) · to stop (vt)",cat:"actions"},
+  {k:"降",on:"こう",kun:"お・ふ",mean:"descend / fall",emoji:"⬇️",ex:"降りる・降る",exm:"to get off · to rain",cat:"actions"},
+  {k:"乗",on:"じょう",kun:"の",mean:"ride / board",emoji:"🚌",ex:"乗る・乗り物",exm:"to ride · vehicle",cat:"actions"},
+  {k:"送",on:"そう",kun:"おく",mean:"send",emoji:"📦",ex:"送る・送料",exm:"to send · shipping fee",cat:"actions"},
+  {k:"受",on:"じゅ",kun:"う",mean:"receive",emoji:"📬",ex:"受ける・受付",exm:"to receive · reception",cat:"actions"},
+  {k:"貸",on:"たい",kun:"か",mean:"lend",emoji:"💳",ex:"貸す・貸出",exm:"to lend · lending",cat:"actions"},
+  {k:"借",on:"しゃく",kun:"か",mean:"borrow",emoji:"🤝",ex:"借りる・借金",exm:"to borrow · debt",cat:"actions"},
+  {k:"払",on:"ふつ",kun:"はら",mean:"pay",emoji:"💴",ex:"払う・支払い",exm:"to pay · payment",cat:"actions"},
+  {k:"集",on:"しゅう",kun:"あつ",mean:"gather",emoji:"📚",ex:"集める・集まる",exm:"to collect · to gather",cat:"actions"},
+  {k:"並",on:"へい",kun:"なら",mean:"line up",emoji:"📋",ex:"並ぶ・並べる",exm:"to line up · to arrange",cat:"actions"},
+  {k:"呼",on:"こ",kun:"よ",mean:"call",emoji:"📣",ex:"呼ぶ・呼出",exm:"to call · to summon",cat:"actions"},
+  {k:"頼",on:"らい",kun:"たの",mean:"ask / rely",emoji:"🙏",ex:"頼む・頼る",exm:"to ask · to rely on",cat:"actions"},
+  {k:"忘",on:"ぼう",kun:"わす",mean:"forget",emoji:"🧠",ex:"忘れる・忘れ物",exm:"to forget · forgotten item",cat:"actions"},
+  {k:"覚",on:"かく",kun:"おぼ・さ",mean:"remember",emoji:"💡",ex:"覚える・覚醒",exm:"to remember · awakening",cat:"actions"},
+  {k:"決",on:"けつ",kun:"き",mean:"decide",emoji:"✅",ex:"決める・決定",exm:"to decide · decision",cat:"actions"},
+  {k:"選",on:"せん",kun:"えら",mean:"choose",emoji:"🗳️",ex:"選ぶ・選手",exm:"to choose · athlete",cat:"actions"},
+  {k:"変",on:"へん",kun:"か",mean:"change / strange",emoji:"🔄",ex:"変わる・変な",exm:"to change · strange",cat:"actions"},
+  {k:"困",on:"こん",kun:"こま",mean:"troubled",emoji:"😟",ex:"困る・困難",exm:"to be troubled · difficulty",cat:"actions"},
+  {k:"泳",on:"えい",kun:"およ",mean:"swim",emoji:"🏊",ex:"泳ぐ・水泳",exm:"to swim · swimming",cat:"actions"},
+  {k:"歌",on:"か",kun:"うた",mean:"sing / song",emoji:"🎵",ex:"歌う・歌手",exm:"to sing · singer",cat:"actions"},
+  {k:"踊",on:"よう",kun:"おど",mean:"dance",emoji:"💃",ex:"踊る・踊り",exm:"to dance · dance",cat:"actions"},
+  {k:"弾",on:"だん",kun:"ひ",mean:"play instrument",emoji:"🎹",ex:"弾く・弾む",exm:"to play · to bounce",cat:"actions"},
+  {k:"吹",on:"すい",kun:"ふ",mean:"blow",emoji:"💨",ex:"吹く・吹奏",exm:"to blow · brass band",cat:"actions"},
+  {k:"太",on:"た",kun:"ふと",mean:"fat / thick",emoji:"💪",ex:"太い・太る",exm:"thick · to gain weight",cat:"adjectives"},
+  {k:"細",on:"さい",kun:"ほそ",mean:"thin / narrow",emoji:"📏",ex:"細い・細かい",exm:"thin · fine / detailed",cat:"adjectives"},
+  {k:"重",on:"じゅう",kun:"おも",mean:"heavy",emoji:"⚖️",ex:"重い・体重",exm:"heavy · body weight",cat:"adjectives"},
+  {k:"軽",on:"けい",kun:"かる",mean:"light (weight)",emoji:"🪶",ex:"軽い・軽食",exm:"light · light meal",cat:"adjectives"},
+  {k:"広",on:"こう",kun:"ひろ",mean:"wide / broad",emoji:"↔️",ex:"広い・広場",exm:"wide · plaza",cat:"adjectives"},
+  {k:"狭",on:"きょう",kun:"せま",mean:"narrow",emoji:"🚶",ex:"狭い・狭める",exm:"narrow · to narrow",cat:"adjectives"},
+  {k:"深",on:"しん",kun:"ふか",mean:"deep",emoji:"🌊",ex:"深い・深夜",exm:"deep · midnight",cat:"adjectives"},
+  {k:"浅",on:"せん",kun:"あさ",mean:"shallow",emoji:"💧",ex:"浅い・浅草",exm:"shallow · Asakusa",cat:"adjectives"},
+  {k:"暑",on:"しょ",kun:"あつ",mean:"hot (weather)",emoji:"☀️",ex:"暑い・猛暑",exm:"hot · intense heat",cat:"adjectives"},
+  {k:"寒",on:"かん",kun:"さむ",mean:"cold (weather)",emoji:"❄️",ex:"寒い・寒波",exm:"cold · cold wave",cat:"adjectives"},
+  {k:"温",on:"おん",kun:"あたた",mean:"warm",emoji:"🌡️",ex:"温かい・温泉",exm:"warm · hot spring",cat:"adjectives"},
+  {k:"涼",on:"りょう",kun:"すず",mean:"cool / refreshing",emoji:"🌬️",ex:"涼しい・涼む",exm:"cool · to cool off",cat:"adjectives"},
+  {k:"忙",on:"ぼう",kun:"いそが",mean:"busy",emoji:"🏃",ex:"忙しい・多忙",exm:"busy · very busy",cat:"adjectives"},
+  {k:"暇",on:"か",kun:"ひま",mean:"free time",emoji:"😌",ex:"暇・暇つぶし",exm:"free time · killing time",cat:"adjectives"},
+  {k:"便",on:"べん",kun:"—",mean:"convenient",emoji:"✅",ex:"便利・不便",exm:"convenient · inconvenient",cat:"adjectives"},
+  {k:"正",on:"せい・しょう",kun:"ただ",mean:"correct / right",emoji:"✅",ex:"正しい・正直",exm:"correct · honest",cat:"adjectives"},
+  {k:"悪",on:"あく",kun:"わる",mean:"bad / evil",emoji:"❌",ex:"悪い・悪化",exm:"bad · worsening",cat:"adjectives"},
+  {k:"強",on:"きょう",kun:"つよ",mean:"strong",emoji:"💪",ex:"強い・強調",exm:"strong · emphasis",cat:"adjectives"},
+  {k:"弱",on:"じゃく",kun:"よわ",mean:"weak",emoji:"🍃",ex:"弱い・弱点",exm:"weak · weak point",cat:"adjectives"},
+  {k:"若",on:"じゃく",kun:"わか",mean:"young",emoji:"👶",ex:"若い・若者",exm:"young · young people",cat:"adjectives"},
+  {k:"難",on:"なん・に",kun:"むずか",mean:"difficult",emoji:"🧩",ex:"難しい・困難",exm:"difficult · difficulty",cat:"adjectives"},
+  {k:"易",on:"い・えき",kun:"やさ",mean:"easy",emoji:"😊",ex:"易しい・容易",exm:"easy · easy (formal)",cat:"adjectives"},
+  {k:"楽",on:"らく・がく",kun:"たの",mean:"fun / comfortable",emoji:"😊",ex:"楽しい・楽に",exm:"fun · comfortably",cat:"adjectives"},
+  {k:"危",on:"き",kun:"あぶ",mean:"dangerous",emoji:"⚠️",ex:"危ない・危険",exm:"dangerous · danger",cat:"adjectives"},
+  {k:"店",on:"てん",kun:"みせ",mean:"shop / store",emoji:"🏪",ex:"お店・店員",exm:"shop · store clerk",cat:"places"},
+  {k:"銀",on:"ぎん",kun:"—",mean:"silver / bank",emoji:"🏦",ex:"銀行・銀色",exm:"bank · silver colour",cat:"places"},
+  {k:"図",on:"ず・と",kun:"はか",mean:"diagram / plan",emoji:"🗺️",ex:"図書館・地図",exm:"library · map",cat:"places"},
+  {k:"館",on:"かん",kun:"やかた",mean:"building / hall",emoji:"🏛️",ex:"図書館・体育館",exm:"library · gymnasium",cat:"places"},
+  {k:"場",on:"じょう",kun:"ば",mean:"place / venue",emoji:"📍",ex:"場所・駐車場",exm:"place · parking lot",cat:"places"},
+  {k:"港",on:"こう",kun:"みなと",mean:"harbour / port",emoji:"⚓",ex:"港・空港",exm:"harbour · airport",cat:"places"},
+  {k:"橋",on:"きょう",kun:"はし",mean:"bridge",emoji:"🌉",ex:"橋・横断歩道",exm:"bridge · crosswalk",cat:"places"},
+  {k:"道",on:"どう",kun:"みち",mean:"road / way",emoji:"🛣️",ex:"道路・道具",exm:"road · tool",cat:"places"},
+  {k:"都",on:"と・つ",kun:"みやこ",mean:"capital",emoji:"🏙️",ex:"都市・東京都",exm:"city · Tokyo Metropolis",cat:"places"},
+  {k:"市",on:"し",kun:"いち",mean:"city / market",emoji:"🏙️",ex:"市内・市場",exm:"in the city · market",cat:"places"},
+  {k:"町",on:"ちょう",kun:"まち",mean:"town",emoji:"🏘️",ex:"町・下町",exm:"town · old downtown",cat:"places"},
+  {k:"村",on:"そん",kun:"むら",mean:"village",emoji:"🏡",ex:"村・農村",exm:"village · farming village",cat:"places"},
+  {k:"室",on:"しつ",kun:"むろ",mean:"room",emoji:"🚪",ex:"教室・室内",exm:"classroom · indoors",cat:"places"},
+  {k:"横",on:"おう",kun:"よこ",mean:"side / horizontal",emoji:"↔️",ex:"横・横断",exm:"side · crossing",cat:"directions"},
+  {k:"向",on:"こう",kun:"む",mean:"face / direction",emoji:"➡️",ex:"向く・向かい",exm:"to face · opposite",cat:"directions"},
+  {k:"側",on:"そく",kun:"かわ",mean:"side / beside",emoji:"🔀",ex:"右側・左側",exm:"right side · left side",cat:"directions"},
+  {k:"辺",on:"へん",kun:"あた",mean:"area / vicinity",emoji:"📍",ex:"この辺・周辺",exm:"around here · surroundings",cat:"directions"},
+  {k:"周",on:"しゅう",kun:"まわ",mean:"around",emoji:"🔄",ex:"周り・周辺",exm:"surroundings · vicinity",cat:"directions"},
+  {k:"角",on:"かく",kun:"かど・すみ",mean:"corner / angle",emoji:"📐",ex:"角・三角",exm:"corner · triangle",cat:"directions"},
+  {k:"番",on:"ばん",kun:"—",mean:"number / turn",emoji:"🔢",ex:"番号・一番",exm:"number · number one",cat:"directions"},
+  {k:"号",on:"ごう",kun:"—",mean:"number / issue",emoji:"🏷️",ex:"番号・信号",exm:"number · traffic light",cat:"directions"},
+  {k:"教",on:"きょう",kun:"おし",mean:"teach",emoji:"📚",ex:"教える・教育",exm:"to teach · education",cat:"school"},
+  {k:"習",on:"しゅう",kun:"なら",mean:"learn / practice",emoji:"✏️",ex:"習う・練習",exm:"to learn · practice",cat:"school"},
+  {k:"勉",on:"べん",kun:"—",mean:"study hard",emoji:"📖",ex:"勉強・勤勉",exm:"study · diligence",cat:"school"},
+  {k:"試",on:"し",kun:"こころ・ため",mean:"try / test",emoji:"📝",ex:"試験・試合",exm:"exam · match",cat:"school"},
+  {k:"験",on:"けん",kun:"—",mean:"test / experience",emoji:"📊",ex:"試験・経験",exm:"exam · experience",cat:"school"},
+  {k:"問",on:"もん",kun:"と",mean:"question",emoji:"❓",ex:"問題・質問",exm:"problem · question",cat:"school"},
+  {k:"研",on:"けん",kun:"—",mean:"research",emoji:"🔬",ex:"研究・研修",exm:"research · training",cat:"school"},
+  {k:"意",on:"い",kun:"—",mean:"meaning / mind",emoji:"💭",ex:"意味・注意",exm:"meaning · caution",cat:"school"},
+  {k:"味",on:"み",kun:"あじ",mean:"taste / flavor",emoji:"😋",ex:"味・意味",exm:"taste · meaning",cat:"school"},
+  {k:"思",on:"し",kun:"おも",mean:"think",emoji:"💭",ex:"思う・思い出",exm:"to think · memory",cat:"school"},
+  {k:"考",on:"こう",kun:"かんが",mean:"think / consider",emoji:"🤔",ex:"考える・考え方",exm:"to think · way of thinking",cat:"school"},
+  {k:"知",on:"ち",kun:"し",mean:"know",emoji:"🧠",ex:"知る・知識",exm:"to know · knowledge",cat:"school"},
+  {k:"仕",on:"し",kun:"つか",mean:"serve / work",emoji:"💼",ex:"仕事・仕方",exm:"work · way of doing",cat:"work"},
+  {k:"事",on:"じ・ず",kun:"こと",mean:"thing / matter",emoji:"📋",ex:"仕事・大事",exm:"work · important",cat:"work"},
+  {k:"社",on:"しゃ",kun:"やしろ",mean:"company / shrine",emoji:"🏢",ex:"会社・社会",exm:"company · society",cat:"work"},
+  {k:"員",on:"いん",kun:"—",mean:"member / employee",emoji:"👔",ex:"社員・店員",exm:"employee · clerk",cat:"work"},
+  {k:"部",on:"ぶ",kun:"—",mean:"department / part",emoji:"🗂️",ex:"部長・全部",exm:"department head · all",cat:"work"},
+  {k:"課",on:"か",kun:"—",mean:"section / lesson",emoji:"📋",ex:"課長・課題",exm:"section chief · assignment",cat:"work"},
+  {k:"係",on:"けい",kun:"かかり",mean:"in charge",emoji:"📌",ex:"係員・係る",exm:"person in charge · related",cat:"work"},
+  {k:"議",on:"ぎ",kun:"—",mean:"discuss",emoji:"🗣️",ex:"会議・議員",exm:"meeting · assembly member",cat:"work"},
+  {k:"働",on:"どう",kun:"はたら",mean:"work",emoji:"🔨",ex:"働く・労働",exm:"to work · labour",cat:"work"},
+  {k:"申",on:"しん",kun:"もう",mean:"say (humble)",emoji:"🙇",ex:"申す・申し込む",exm:"to say (humble) · to apply",cat:"work"},
+];
+
+/* ── STATE ──────────────────────────────────────────────────── */
+let deck=[...KANJI],idx=0,flipped=false;
+let known=new Set(),learning=new Set(),streak=0;
+let filterCat='all',mode='flash';
+
+let quizAnswered=false,quizQ=0,quizTotal=10,quizCorrect=0,currentQuizReadingKey='on';
+let matchSel={side:null,idx:null,el:null},matchPairs=[],matchMatched=new Set();
+
+/* ── HELPERS ────────────────────────────────────────────────── */
+function getRandom(arr,n,exclude){
+  const pool=arr.filter(k=>k!==exclude);
+  const out=[];
+  while(out.length<n&&pool.length){const i=Math.floor(Math.random()*pool.length);out.push(pool.splice(i,1)[0]);}
+  return out;
+}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+/* ── FILTER / MODE ──────────────────────────────────────────── */
+function setFilter(cat,btn){
+  filterCat=cat;
+  document.querySelectorAll('#cat-filter-row .filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  deck=cat==='all'?[...KANJI]:KANJI.filter(k=>k.cat===cat);
+  idx=0;isShuffled=false;
+  const sb=document.getElementById('shuffle-btn');if(sb){sb.textContent='Shuffle';sb.classList.remove('primary');}
+  document.getElementById('deck-info').textContent=deck.length+' kanji · '+(cat==='all'?'All categories':cat);
+  if(mode==='list'){renderMosaic();return;}
+  resetMode();
+}
+
+function setMode(m,btn){
+  mode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  resetMode();
+}
+
+function resetMode(){
+  ['flash-mode','quiz-mode','match-mode','srs-mode','list-mode','result-screen']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hidden');});
+  const dfr=document.getElementById('deck-filter-row');
+  const cfr=document.getElementById('cat-filter-row');
+  const sw=document.getElementById('slider-wrap');
+  const pw=document.getElementById('progress-wrap');
+  if(dfr)dfr.style.display='none';
+  if(cfr)cfr.style.display='none';
+  if(sw)sw.style.display='none';
+  if(pw)pw.style.display='none';
+  if(mode==='flash'){
+    document.getElementById('flash-mode').classList.remove('hidden');
+    if(sw)sw.style.display='block';
+    if(pw)pw.style.display='block';
+    if(cfr)cfr.style.display='flex';
+    if(dfr)dfr.style.display='flex';
+    syncSlider(); showCard();
+  } else if(mode==='quiz'){
+    document.getElementById('quiz-mode').classList.remove('hidden');
+    if(dfr)dfr.style.display='flex';
+    document.getElementById('quiz-game').classList.add('hidden');
+    document.getElementById('quiz-start-hint').classList.remove('hidden');
+  } else if(mode==='match'){
+    document.getElementById('match-mode').classList.remove('hidden');
+    if(dfr)dfr.style.display='flex';
+    newMatchRound();
+  } else if(mode==='srs'){
+    document.getElementById('srs-mode').classList.remove('hidden');
+    if(dfr)dfr.style.display='flex';
+    startSRS();
+  } else if(mode==='list'){
+    document.getElementById('list-mode').classList.remove('hidden');
+    if(cfr)cfr.style.display='flex';
+    renderMosaic();
+  }
+  updateStats();
+}
+
+/* ── FLASHCARD ──────────────────────────────────────────────── */
+
+
+function flipCard(){
+  if(mode!=='flash')return;
+  flipped=!flipped;
+  document.getElementById('card').classList.toggle('flipped',flipped);
+  document.getElementById('rate-btns').style.display=flipped?'flex':'none';
+  sfxFlip();
+}
+
+/* ── SWIPE GESTURES ─────────────────────────────────────────── */
+(function(){
+  let startX=0,startY=0,active=false;
+  const THRESHOLD=50,MAX_VERT=75;
+
+  function onStart(x,y,target){
+    // activate if touch/click is anywhere inside the flashcard wrap
+    if(!target.closest('#card-wrap'))return;
+    startX=x;startY=y;active=true;
+  }
+  function onMove(x,y){
+    if(!active||!flipped)return;
+    const dx=x-startX,dy=y-startY;
+    if(Math.abs(dy)>MAX_VERT){reset();return;}
+    const wrap=document.getElementById('card-wrap');
+    if(!wrap)return;
+    wrap.style.transition='none';
+    wrap.style.transform='translateX('+(dx*0.4)+'px) rotate('+(dx*0.025)+'deg)';
+    wrap.style.opacity=String(Math.max(0.4,1-Math.abs(dx)/250));
+  }
+  function reset(){
+    active=false;
+    const wrap=document.getElementById('card-wrap');
+    if(!wrap)return;
+    wrap.style.transition='transform .25s ease,opacity .25s ease';
+    wrap.style.transform='';
+    wrap.style.opacity='';
+    // clean up transition after animation
+    setTimeout(()=>{if(wrap){wrap.style.transition='';}},260);
+  }
+  function onEnd(x,y){
+    if(!active)return;
+    const dx=x-startX,dy=y-startY;
+    active=false;
+    if(!flipped||Math.abs(dy)>MAX_VERT||Math.abs(dx)<THRESHOLD){reset();return;}
+    // committed swipe — snap off screen then rate
+    const wrap=document.getElementById('card-wrap');
+    if(wrap){
+      wrap.style.transition='transform .2s ease,opacity .2s ease';
+      wrap.style.transform='translateX('+(dx>0?400:-400)+'px) rotate('+(dx>0?12:-12)+'deg)';
+      wrap.style.opacity='0';
+    }
+    setTimeout(()=>{
+      if(wrap){wrap.style.transition='';wrap.style.transform='';wrap.style.opacity='';}
+      if(dx>0) rate(true);
+      else     rate(false);
+    },200);
+  }
+
+  document.addEventListener('touchstart',e=>{
+    onStart(e.touches[0].clientX,e.touches[0].clientY,e.target);
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    onMove(e.touches[0].clientX,e.touches[0].clientY);
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    onEnd(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+  },{passive:true});
+  document.addEventListener('mousedown',e=>{onStart(e.clientX,e.clientY,e.target);});
+  document.addEventListener('mousemove',e=>{if(active)onMove(e.clientX,e.clientY);});
+  document.addEventListener('mouseup',  e=>{if(active)onEnd(e.clientX,e.clientY);});
+})();
+
+function rate(gotIt){
+  const k=deck[idx];
+  if(gotIt){known.add(k.k);learning.delete(k.k);streak++;}
+  else{learning.add(k.k);known.delete(k.k);streak=0;}
+  updateStats();
+  updateDeckFilterCounts();
+  saveSession();
+  if(idx<deck.length-1){idx++;showCard();}
+  else{showResult();}
+}
+
+function next(){if(idx<deck.length-1){idx++;showCard();}}
+function prev(){if(idx>0){idx--;showCard();}}
+
+function shuffle(){
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  idx=0;showCard();
+}
+
+/* ── QUIZ ───────────────────────────────────────────────────── */
+/*
+  Quiz types (controlled by #quiz-type-checklist):
+  0   = Kanji → Meaning
+  2   = Meaning → Kanji
+  rk  = Readings → Kanji  (show ON · KUN, pick kanji)
+  kr  = Kanji → Readings  (show kanji, pick ON · KUN combo)
+  3on = ON reading → Kanji
+  1on = Kanji → ON reading
+  3kun= KUN reading → Kanji
+  1kun= Kanji → KUN reading
+*/
+let currentQuizType=0;
+
+function startQuiz(){
+  const n=parseInt(document.getElementById('quiz-count').value)||10;
+  quizTotal=Math.min(Math.max(n,1),deck.length*3);
+  quizQ=0;quizCorrect=0;
+  document.getElementById('quiz-start-hint').classList.add('hidden');
+  document.getElementById('quiz-game').classList.remove('hidden');
+  newQuizRound();
+}
+
+function newQuizRound(){
+  if(quizQ>=quizTotal){endQuiz();return;}
+  quizAnswered=false;
+
+  // determine which quiz type to use this round
+  const checked=[...document.querySelectorAll('#quiz-type-checklist input:checked')].map(c=>c.value);
+  const activeTypes=checked.length?checked:['0','2','rk','kr','3on','1on','3kun','1kun'];
+  const chosenType=pick(activeTypes);
+
+  const typeLabels={
+    '0':'Kanji → Meaning','2':'Meaning → Kanji',
+    'rk':'Readings → Kanji','kr':'Kanji → Readings',
+    '3on':'ON reading → Kanji','1on':'Kanji → ON reading',
+    '3kun':'KUN reading → Kanji','1kun':'Kanji → KUN reading',
+  };
+  document.getElementById('quiz-type-badge').textContent=typeLabels[chosenType]||chosenType;
+
+  // pick a kanji that has valid readings for the chosen type
+  let k,attempts=0;
+  do{k=pick(deck);attempts++;}while(attempts<20&&(['1kun','3kun'].includes(chosenType)&&k.kun==='—'));
+
+  document.getElementById('q-cat').textContent=(k.cat==='numbers'?'numbers / quantities':k.cat);
+  document.getElementById('q-prog').textContent='Question '+(quizQ+1)+' of '+quizTotal+' · '+quizCorrect+' correct';
+
+  const stimulus=document.getElementById('q-stimulus');
+  const prompt=document.getElementById('q-prompt');
+  const container=document.getElementById('q-opts');
+  container.innerHTML='';
+
+  function makeBtn(label,isKanji,isCorrect){
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    if(isKanji) btn.innerHTML='<span class="opt-kanji">'+label+'</span>';
+    else btn.textContent=label;
+    btn.onclick=()=>handleQuizAnswer(btn,isCorrect,k,container,chosenType);
+    container.appendChild(btn);
+  }
+
+  function buildOpts(pool,correctVal,isKanji){
+    const opts=[correctVal,...pool.filter(v=>v!==correctVal&&v!=='—').slice(0,10)];
+    // pad if needed
+    while(opts.length<4){opts.push('？');}
+    opts.slice(0,4).sort(()=>Math.random()-.5).forEach(o=>makeBtn(o,isKanji,o===correctVal));
+  }
+
+  if(chosenType==='0'){
+    // Kanji → Meaning
+    stimulus.textContent=k.k; stimulus.style.fontSize='76px';
+    prompt.textContent='What is the meaning of this kanji?';
+    buildOpts(getRandom(deck,3,k).map(d=>d.mean),k.mean,false);
+
+  } else if(chosenType==='2'){
+    // Meaning → Kanji
+    stimulus.textContent=k.mean; stimulus.style.fontSize='26px';
+    prompt.textContent='Which kanji has this meaning?';
+    buildOpts(getRandom(deck,3,k).map(d=>d.k),k.k,true);
+
+  } else if(chosenType==='rk'){
+    // Readings → Kanji: show ON · KUN, pick kanji
+    const reading=(k.kun!=='—')?k.on+' · '+k.kun:k.on;
+    stimulus.textContent=reading; stimulus.style.fontSize='26px';
+    prompt.textContent='Which kanji has these readings?';
+    buildOpts(getRandom(deck,3,k).map(d=>d.k),k.k,true);
+
+  } else if(chosenType==='kr'){
+    // Kanji → Readings: show kanji, pick ON · KUN combo
+    stimulus.textContent=k.k; stimulus.style.fontSize='76px';
+    prompt.textContent='Which readings belong to this kanji?';
+    const correctReading=(k.kun!=='—')?k.on+' · '+k.kun:k.on;
+    const wrongReadings=getRandom(deck,3,k).map(d=>(d.kun!=='—')?d.on+' · '+d.kun:d.on);
+    buildOpts(wrongReadings,correctReading,false);
+
+  } else if(chosenType==='3on'){
+    // ON reading → Kanji
+    stimulus.textContent=k.on; stimulus.style.fontSize='32px';
+    prompt.textContent='Which kanji has this ON reading (音読み)?';
+    buildOpts(getRandom(deck,3,k).map(d=>d.k),k.k,true);
+
+  } else if(chosenType==='1on'){
+    // Kanji → ON reading
+    stimulus.textContent=k.k; stimulus.style.fontSize='76px';
+    prompt.textContent='What is the ON reading (音読み) of this kanji?';
+    currentQuizReadingKey='on';
+    buildOpts(getRandom(deck,3,k).map(d=>d.on),k.on,false);
+
+  } else if(chosenType==='3kun'){
+    // KUN reading → Kanji
+    stimulus.textContent=k.kun; stimulus.style.fontSize='32px';
+    prompt.textContent='Which kanji has this KUN reading (訓読み)?';
+    buildOpts(getRandom(deck,3,k).map(d=>d.k),k.k,true);
+
+  } else if(chosenType==='1kun'){
+    // Kanji → KUN reading
+    stimulus.textContent=k.k; stimulus.style.fontSize='76px';
+    prompt.textContent='What is the KUN reading (訓読み) of this kanji?';
+    currentQuizReadingKey='kun';
+    buildOpts(getRandom(deck,3,k).filter(d=>d.kun!=='—').map(d=>d.kun),k.kun,false);
+  }
+}
+
+function handleQuizAnswer(btn,correct,k,container,chosenType){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  quizQ++;
+  btn.classList.add(correct?'correct':'wrong');
+  if(correct){quizCorrect++;known.add(k.k);learning.delete(k.k);streak++;sfxCorrect();}
+  else{
+    learning.add(k.k);known.delete(k.k);streak=0;sfxWrong();
+    // highlight the correct button
+    const isKanjiAnswer=['2','rk','3on','3kun'].includes(chosenType);
+    container.querySelectorAll('.opt-btn').forEach(b=>{
+      if(isKanjiAnswer){
+        if(b.querySelector('.opt-kanji')&&b.querySelector('.opt-kanji').textContent===k.k) b.classList.add('correct');
+      } else {
+        let correctVal;
+        if(chosenType==='0') correctVal=k.mean;
+        else if(chosenType==='1on') correctVal=k.on;
+        else if(chosenType==='1kun') correctVal=k.kun;
+        else if(chosenType==='kr') correctVal=(k.kun!=='—')?k.on+' · '+k.kun:k.on;
+        else correctVal=currentQuizReadingKey==='on'?k.on:k.kun;
+        if(b.textContent===correctVal) b.classList.add('correct');
+      }
+    });
+  }
+  updateStats();
+  document.getElementById('q-prog').textContent='Question '+quizQ+' of '+quizTotal+' · '+quizCorrect+' correct';
+  setTimeout(newQuizRound,1300);
+}
+
+function skipQuiz(){quizQ++;newQuizRound();}
+
+function endQuiz(){
+  document.getElementById('quiz-game').classList.add('hidden');
+  document.getElementById('quiz-start-hint').classList.remove('hidden');
+  document.getElementById('quiz-start-hint').textContent=
+    'Session complete! Score: '+quizCorrect+' / '+quizTotal+
+    ' ('+Math.round(quizCorrect/quizTotal*100)+'%). Press Start for a new session.';
+  if(quizCorrect===quizTotal)sfxComplete();
+}
+
+/* ── MATCH ──────────────────────────────────────────────────── */
+function newMatchRound(){
+  matchSel={side:null,idx:null,el:null};
+  matchMatched=new Set();
+  matchLocked=false;
+  const n=parseInt(document.getElementById('match-count').value)||6;
+  const count=Math.min(Math.max(n,1),Math.min(10,deck.length));
+  matchPairs=getRandom(deck,count,null);
+  const shuffledMeans=[...matchPairs].sort(()=>Math.random()-.5);
+  const kCol=document.getElementById('match-kanji-col');
+  const mCol=document.getElementById('match-mean-col');
+  kCol.innerHTML='';mCol.innerHTML='';
+  matchPairs.forEach((k,i)=>{
+    const el=document.createElement('div');
+    el.className='match-item';
+    el.innerHTML='<span class="match-kanji">'+k.k+'</span>';
+    el.onclick=()=>selectMatch(i,'k',el);
+    kCol.appendChild(el);
+  });
+  shuffledMeans.forEach(k=>{
+    const realIdx=matchPairs.indexOf(k);
+    const el=document.createElement('div');
+    el.className='match-item';
+    el.textContent=k.mean;
+    el.onclick=()=>selectMatch(realIdx,'m',el);
+    mCol.appendChild(el);
+  });
+}
+
+let matchLocked=false;
+function selectMatch(idx,side,el){
+  if(el.classList.contains('matched'))return;
+  if(matchLocked)return;
+  const all=document.querySelectorAll('.match-item:not(.matched)');
+  if(matchSel.side===null){
+    // nothing selected yet — select this item
+    all.forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    matchSel={side,idx,el};
+  } else if(matchSel.el===el){
+    // tapped the same item — deselect
+    el.classList.remove('selected');
+    matchSel={side:null,idx:null,el:null};
+    return;
+  } else if(matchSel.side===side){
+    // same column clicked — swap selection within that column
+    all.forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    matchSel={side,idx,el};
+  } else {
+    // opposite column clicked — evaluate the pair
+    const match=matchSel.idx===idx;
+    if(match){
+      el.classList.add('matched');matchSel.el.classList.add('matched');
+      matchMatched.add(idx);known.add(matchPairs[idx].k);streak++;
+      matchSel={side:null,idx:null,el:null};
+      sfxCorrect();updateStats();
+      if(matchMatched.size===matchPairs.length){sfxComplete();setTimeout(newMatchRound,700);}
+    } else {
+      const prevEl=matchSel.el;
+      matchSel={side:null,idx:null,el:null};
+      matchLocked=true;
+      el.classList.add('wrong');prevEl.classList.add('wrong');
+      learning.add(matchPairs[idx].k);streak=0;sfxWrong();updateStats();
+      setTimeout(()=>{
+        el.classList.remove('wrong','selected');
+        prevEl.classList.remove('wrong','selected');
+        matchLocked=false;
+      },700);
+    }
+  }
+}
+
+/* ── STATS / RESULT ─────────────────────────────────────────── */
+function updateStats(){
+  document.getElementById('s-total').textContent=deck.length;
+  document.getElementById('s-know').textContent=known.size;
+  document.getElementById('s-learn').textContent=learning.size;
+  document.getElementById('s-streak').textContent=streak;
+}
+
+function updateProgress(){
+  const pct=deck.length?Math.round((idx+1)/deck.length*100):0;
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('prog-label').textContent='Card '+(idx+1)+' of '+deck.length;
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+function showResult(){
+  ['flash-mode','quiz-mode','match-mode'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('result-screen').classList.remove('hidden');
+  const pct=deck.length?Math.round(known.size/deck.length*100):0;
+  document.getElementById('res-emoji').textContent=pct>=80?'★':pct>=50?'◎':'△';
+  document.getElementById('res-title').textContent=pct>=80?'Excellent!':pct>=50?'Good progress!':'Keep studying!';
+  document.getElementById('res-sub').textContent=pct+'% known · Best streak: '+streak;
+  document.getElementById('res-stats').innerHTML=
+    '<div class="stat good"><div class="stat-n">'+known.size+'</div><div class="stat-l">known</div></div>'+
+    '<div class="stat bad"><div class="stat-n">'+learning.size+'</div><div class="stat-l">learning</div></div>';
+  if(pct>=80)sfxComplete();
+}
+
+function restartDeck(){
+  idx=0;known.clear();learning.clear();streak=0;
+  document.getElementById('result-screen').classList.add('hidden');
+  resetMode();
+}
+
+function reviewWeak(){
+  if(!learning.size)return;
+  deck=KANJI.filter(k=>learning.has(k.k));
+  idx=0;known.clear();learning.clear();
+  document.getElementById('result-screen').classList.add('hidden');
+  resetMode();
+}
+
+/* ── CHECKLIST HELPERS ──────────────────────────────────────── */
+function checkNone(){
+  document.querySelectorAll('#quiz-type-checklist input').forEach(c=>c.checked=false);
+  updateStartBtn();
+}
+function checkAll(){
+  document.querySelectorAll('#quiz-type-checklist input').forEach(c=>c.checked=true);
+  updateStartBtn();
+}
+function updateStartBtn(){
+  const any=[...document.querySelectorAll('#quiz-type-checklist input')].some(c=>c.checked);
+  document.getElementById('quiz-start-btn').disabled=!any;
+}
+
+
+/* ── PERSISTENCE (localStorage) ────────────────────────────── */
+const STORE_KEY='n4kf_v1';
+function saveSession(){
+  try{
+    localStorage.setItem(STORE_KEY,JSON.stringify({
+      known:[...known],
+      learning:[...learning],
+      srsData:Object.fromEntries(Object.entries(srsData).map(([k,v])=>[k,v])),
+      customKanji:[...customKanji],
+      lastIdx:idx,
+      lastCat:filterCat,
+      lastDeckFilter:deckFilter,
+      srsNewToday:srsNewToday,
+    }));
+  }catch(e){}
+}
+function loadSession(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    if(d.known)known=new Set(d.known);
+    if(d.learning)learning=new Set(d.learning);
+    if(d.srsData)Object.entries(d.srsData).forEach(([k,v])=>{
+      // Migrate old format {interval,ease,due,reps} → new Anki format
+      if(v&&typeof v.state==='undefined'){
+        const migrated={
+          state: v.reps>0 ? 'review' : 'new',
+          step:0, interval:v.interval||1,
+          ease:v.ease||2.5,
+          due: v.due>0 ? srsAddDays(Math.round((v.due-Date.now())/86400000)) : null,
+          lapses:0, lastReview:null
+        };
+        srsData[k]=migrated;
+      } else {
+        srsData[k]=v;
+      }
+    });
+    if(d.customKanji)customKanji=new Set(d.customKanji);
+    if(d.lastCat&&d.lastCat!=='all'){
+      filterCat=d.lastCat;
+      deck=KANJI.filter(k=>k.cat===d.lastCat);
+      // re-activate the right filter button after DOM ready
+      setTimeout(()=>{
+        document.querySelectorAll('#cat-filter-row .filter-btn').forEach(b=>b.classList.remove('on'));
+        document.querySelectorAll('#cat-filter-row .filter-btn').forEach(b=>{
+          if(b.textContent.trim().toLowerCase()===d.lastCat.toLowerCase())b.classList.add('on');
+        });
+      },0);
+    }
+    if(typeof d.lastIdx==='number'&&d.lastIdx<deck.length) idx=d.lastIdx;
+    if(d.srsNewToday&&d.srsNewToday.date===srsToday()) srsNewToday=d.srsNewToday;
+  }catch(e){}
+}
+
+function resetProgress(){
+  console.log('[RESET] resetProgress called');
+  if(!confirm('Reset all progress? This will clear all Got it / Still learning / SRS data. This cannot be undone.'))return;
+  known=new Set();learning=new Set();
+  Object.keys(srsData).forEach(k=>delete srsData[k]);
+  srsNewToday={date:'',count:0};
+  srsQueue=[];srsCardIdx=0;
+  customKanji=new Set();
+  saveSession();
+  console.log('[RESET] done clearing');
+  updateStats();updateDeckFilterCounts();
+  if(mode==='list')renderMosaic();
+  if(mode==='srs')startSRS();
+  const btn=document.querySelector('[onclick="resetProgress()"]');
+  if(btn){const orig=btn.textContent;btn.textContent='✓ Reset!';setTimeout(()=>btn.textContent=orig,2000);}
+}
+
+function manualSave(){
+  saveSession();
+  const btn=document.getElementById('save-btn');
+  if(!btn)return;
+  const orig=btn.innerHTML;
+  btn.innerHTML='&#10003; Saved!';
+  btn.classList.add('saved');
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.innerHTML=orig;
+    btn.classList.remove('saved');
+    btn.disabled=false;
+  },2000);
+}
+
+/* ── SRS DATA ───────────────────────────────────────────────── */
+/* ── SRS ENGINE ─────────────────────────────────────────────────
+   Anki-style spaced repetition. Card lifecycle:
+
+   new ──(Good/Hard)──▶ learning ──(graduate)──▶ review
+    │                                                │
+    └──(Easy)──────────────────────────────▶        │
+                                            lapse ──▶ relearning ──▶ review
+
+   STATES:   'new' | 'learning' | 'review' | 'relearning'
+   LEARNING STEPS: [1m, 10m]  — sub-day, stored as ms timestamp
+   REVIEW dues:    YYYY-MM-DD  — day-granular, timezone-safe
+   DAILY TRACKING: srsNewToday{date,count} — cap 10 new/day
+─────────────────────────────────────────────────────────────── */
+
+// ── Constants ──────────────────────────────────────────────────
+const SRS_LEARN_STEPS    = [1, 10];   // learning step durations (minutes)
+const SRS_RELEARN_STEPS  = [10];      // relearning steps after lapse (minutes)
+const SRS_GRAD_INTERVAL  = 1;         // days: Good graduates to
+const SRS_EASY_INTERVAL  = 4;         // days: Easy graduates to / Easy bonus on review
+const SRS_INIT_EASE      = 2.5;       // starting ease factor
+const SRS_MIN_EASE       = 1.3;       // ease floor
+const SRS_EASY_BONUS     = 1.3;       // multiplier bonus for Easy on reviews
+const SRS_HARD_FACTOR    = 1.2;       // multiplier for Hard on reviews
+const SRS_NEW_PER_DAY    = 10;        // max new cards per calendar day
+
+// ── Runtime state ──────────────────────────────────────────────
+const srsData = {};            // per-kanji SRS records
+let srsQueue     = [];         // ordered queue for this session
+let srsCardIdx   = 0;          // pointer into srsQueue
+let srsFlipped   = false;      // whether current card is flipped
+let srsNewToday  = { date: '', count: 0 }; // daily new-card tracker
+
+// ── Date helpers ───────────────────────────────────────────────
+function srsToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+function srsDateFromStr(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function srsAddDays(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+function srsDaysUntil(dateStr) {
+  const today = srsDateFromStr(srsToday());
+  const due   = srsDateFromStr(dateStr);
+  return Math.round((due - today) / 86400000);
+}
+
+// ── Card entry initialiser ─────────────────────────────────────
+function srsEntry(k) {
+  if (!srsData[k.k]) {
+    srsData[k.k] = {
+      state: 'new',        // new | learning | review | relearning
+      step: 0,             // index into current step array
+      interval: 0,         // days (review/relearning only)
+      ease: SRS_INIT_EASE,
+      due: null,           // ms timestamp (learning/relearning) or YYYY-MM-DD (review)
+      lapses: 0,
+      lastReview: null
+    };
+  }
+  return srsData[k.k];
+}
+
+// ── Due check ──────────────────────────────────────────────────
+function srsIsDue(k) {
+  const e = srsEntry(k);
+  if (e.state === 'new') return false;
+  if (e.state === 'learning' || e.state === 'relearning') {
+    return e.due !== null && Date.now() >= e.due;
+  }
+  // review: date string comparison
+  return e.due !== null && e.due <= srsToday();
+}
+
+// ── Daily new-card quota ───────────────────────────────────────
+function srsNewAllowance() {
+  const today = srsToday();
+  if (srsNewToday.date !== today) {
+    srsNewToday = { date: today, count: 0 };
+  }
+  return SRS_NEW_PER_DAY - srsNewToday.count;
+}
+function srsConsumeNew() {
+  const today = srsToday();
+  if (srsNewToday.date !== today) srsNewToday = { date: today, count: 0 };
+  srsNewToday.count++;
+}
+
+// ── Session queue builder ──────────────────────────────────────
+function buildSRSQueue() {
+  var dueLearning = deck.filter(function(k) {
+    var e = srsData[k.k];
+    return e && (e.state==='learning'||e.state==='relearning') && srsIsDue(k);
+  });
+  var dueReview = deck.filter(function(k) {
+    var e = srsData[k.k];
+    return e && e.state==='review' && srsIsDue(k);
+  });
+  var newCards = deck
+    .filter(function(k){ return !srsData[k.k]||srsData[k.k].state==='new'; })
+    .slice(0, SRS_NEW_PER_DAY);
+  srsQueue = [].concat(dueLearning, dueReview, newCards);
+  srsCardIdx = 0;
+}
+
+// ── Counts for info bar (reflects current deck, not just queue) ─
+function srsCounts() {
+  const today = srsToday();
+  let newC = 0, learnC = 0, reviewC = 0;
+  deck.forEach(k => {
+    const e = srsData[k.k];
+    if (!e || e.state === 'new') {
+      newC++;
+    } else if (e.state === 'learning' || e.state === 'relearning') {
+      // Count all learning cards — due now or coming up soon this session
+      learnC++;
+    } else if (e.state === 'review' && e.due <= today) {
+      reviewC++;
+    }
+  });
+  // Cap new count at today's remaining allowance
+  newC = Math.min(newC, srsNewAllowance());
+  return { newC, learnC, reviewC };
+}
+
+// ── Info bar renderer ──────────────────────────────────────────
+function updateSRSInfo() {
+  var remaining = 0;
+  for (var ri = srsCardIdx; ri < srsQueue.length; ri++) {
+    var ek = srsEntry(srsQueue[ri]);
+    var isSubDay = ek.state === 'learning' || ek.state === 'relearning';
+    if (!isSubDay || srsIsDue(srsQueue[ri])) remaining++;
+  }
+  const c = srsCounts();
+  var waitStr = '';
+  if (remaining === 0) {
+    var wt = srsNextDueIn();
+    if (wt) waitStr = '  ·  next in ' + wt;
+  }
+  document.getElementById('srs-queue-info').textContent =
+    remaining + ' remaining' + waitStr + '  ·  ' +
+    c.newC + ' new  ·  ' +
+    c.learnC + ' learning  ·  ' +
+    c.reviewC + ' review';
+}
+
+// ── Start / restart session ────────────────────────────────────
+function startSRS() {
+  console.log("[SRS] startSRS called. mode="+mode+" deck="+deck.length+" srsData keys="+Object.keys(srsData).length);
+  srsNewToday = { date: srsToday(), count: 0 };
+  buildSRSQueue();
+  console.log("[SRS] queue built:", srsQueue.length, "cards");
+  srsQueue.slice(0,5).forEach(function(k,i){var e=srsData[k.k]||{state:"new"};console.log("  ["+i+"]",k.k,e.state,e.due);});
+  document.getElementById('srs-done').classList.add('hidden');
+  document.getElementById('srs-card').classList.remove('hidden');
+  document.getElementById('srs-rate-btns').style.display='none';
+  if (srsQueue.length===0) { console.log("[SRS] queue empty -> showSRSDone"); showSRSDone(); return; }
+  showSRSCard();
+}
+
+// ── Done screen ────────────────────────────────────────────────
+// Returns "Xm Ys" until the next pending learning card is due, or null
+function srsNextDueIn() { return null; }
+
+function srsClearCountdown() {
+  if (window._srsTimer) { clearInterval(window._srsTimer); window._srsTimer = null; }
+}
+
+function showSRSDone() {
+  document.getElementById('srs-done').classList.remove('hidden');
+  document.getElementById('srs-card').classList.add('hidden');
+  document.getElementById('srs-rate-btns').style.display = 'none';
+  var c = srsCounts();
+  var msgEl  = document.getElementById('srs-done-msg');
+  var nextEl = document.getElementById('srs-next-available');
+  var hasMore = c.learnC > 0 || c.reviewC > 0 || c.newC > 0;
+  if (hasMore) {
+    msgEl.textContent = 'Session done!';
+    var parts = [];
+    if (c.learnC  > 0) parts.push(c.learnC  + ' learning');
+    if (c.reviewC > 0) parts.push(c.reviewC + ' review' + (c.reviewC===1?'':'s'));
+    if (c.newC    > 0) parts.push(c.newC    + ' new');
+    nextEl.textContent = 'Next session: ' + parts.join(' + ');
+    nextEl.classList.remove('hidden');
+  } else {
+    msgEl.textContent = 'All done for now!';
+    nextEl.classList.add('hidden');
+  }
+}
+
+// ── Show current card ──────────────────────────────────────────
+function showSRSCard() {
+  if (srsCardIdx >= srsQueue.length) { showSRSDone(); return; }
+  var k = srsQueue[srsCardIdx];
+  var e = srsEntry(k);
+  updateSRSInfo();
+  var tl='New';
+  if (e.state==='learning')   tl='Learning';
+  if (e.state==='relearning') tl='Relearning';
+  if (e.state==='review') { var od=srsDaysUntil(e.due); tl='Review'+(od<0?' ('+Math.abs(od)+'n overdue)':'  '); }
+  document.getElementById('srs-next-info').textContent=tl;
+  document.getElementById('srs-front-kanji').textContent=k.k;
+  document.getElementById('srs-front-cat').textContent=(k.cat==='numbers'?'numbers / quantities':k.cat);
+  document.getElementById('srs-back-emoji').textContent=k.emoji;
+  document.getElementById('srs-back-kanji').textContent=k.k;
+  document.getElementById('srs-back-meaning').textContent=k.mean;
+  document.getElementById('srs-back-readings').innerHTML='<span class="pill pill-on">ON: '+k.on+'</span><span class="pill pill-kun">KUN: '+k.kun+'</span>';
+  document.getElementById('srs-back-examples').textContent=k.ex;
+  document.getElementById('srs-back-exm').textContent=k.exm;
+  var card=document.getElementById('srs-card');
+  card.style.transition='none'; card.classList.remove('flipped');
+  void card.offsetWidth;
+  requestAnimationFrame(function(){card.style.transition='';});
+  srsFlipped=false;
+  document.getElementById('srs-rate-btns').style.display='none';
+}
+
+// ── Flip ───────────────────────────────────────────────────────
+function flipSRS() {
+  if (!srsQueue.length || srsCardIdx >= srsQueue.length) return;
+  srsFlipped = !srsFlipped;
+  document.getElementById('srs-card').classList.toggle('flipped', srsFlipped);
+  document.getElementById('srs-rate-btns').style.display = srsFlipped ? 'flex' : 'none';
+  if (srsFlipped) { sfxFlip(); updateSRSLabels(); }
+}
+
+// ── Interval formatter ─────────────────────────────────────────
+// unit: 'min' | 'day'
+function srsFmtInterval(val, unit) {
+  if (unit === 'min') return val < 60 ? val + 'm' : Math.round(val / 60) + 'h';
+  // 'day' — use 'n' (next) not 'd' (day) per design intent
+  if (val === 0) return '<1m';
+  if (val  <  30) return val + 'n';
+  if (val  < 365) return Math.round(val / 30) + 'mo';
+  return Math.round(val / 365) + 'yr';
+}
+
+// ── Next-interval preview for each button ─────────────────────
+function srsPreviewLabel(e, rating) {
+  const steps   = (e.state === 'relearning') ? SRS_RELEARN_STEPS : SRS_LEARN_STEPS;
+  const curStep = (e.state === 'new') ? 0 : e.step;
+
+  if (e.state === 'new' || e.state === 'learning' || e.state === 'relearning') {
+    if (rating === 1) {
+      // Again → back to step 0 of current phase
+      return srsFmtInterval(steps[0], 'min');
+    }
+    if (rating === 2) {
+      // Hard → repeat current step
+      return srsFmtInterval(steps[Math.min(curStep, steps.length - 1)], 'min');
+    }
+    if (rating === 3) {
+      // Good → advance step or graduate
+      if (curStep < steps.length - 1) {
+        return srsFmtInterval(steps[curStep + 1], 'min');
+      }
+      return srsFmtInterval(SRS_GRAD_INTERVAL, 'day');
+    }
+    if (rating === 4) {
+      // Easy → graduate immediately
+      if (e.state === 'relearning') {
+        return srsFmtInterval(Math.max(1, Math.round(e.interval * SRS_EASY_BONUS)), 'day');
+      }
+      return srsFmtInterval(SRS_EASY_INTERVAL, 'day');
+    }
+  }
+
+  // Review card
+  if (rating === 1) return srsFmtInterval(SRS_RELEARN_STEPS[0], 'min');
+  const iv = Math.max(1, Math.round(
+    rating === 2 ? e.interval * SRS_HARD_FACTOR
+  : rating === 3 ? e.interval * e.ease
+  :                e.interval * e.ease * SRS_EASY_BONUS
+  ));
+  return srsFmtInterval(iv, 'day');
+}
+
+// ── Update button labels ───────────────────────────────────────
+function updateSRSLabels() {
+  if (!srsQueue.length || srsCardIdx >= srsQueue.length) return;
+  const e = srsEntry(srsQueue[srsCardIdx]);
+  [1, 2, 3, 4].forEach(r => {
+    const lbl = document.getElementById('srs-lbl-' + r);
+    if (lbl) lbl.textContent = srsPreviewLabel(e, r);
+  });
+}
+
+// ── Schedule card after rating ─────────────────────────────────
+function rateSRS(rating) {
+  if (srsCardIdx >= srsQueue.length) return;
+  const k = srsQueue[srsCardIdx];
+  const e = srsEntry(k);
+  e.lastReview = srsToday();
+
+  const isLearningPhase =
+    e.state === 'new' || e.state === 'learning' || e.state === 'relearning';
+  const steps = (e.state === 'relearning') ? SRS_RELEARN_STEPS : SRS_LEARN_STEPS;
+  // Treat 'new' as learning step 0 — consume daily quota on first answer
+  if (e.state === 'new') {
+    e.state = 'learning';
+    e.step = 0;
+    srsConsumeNew(); // count this card against today's new-card limit
+  }
+  const curStep = e.step;
+
+  var wasRelearning = (e.state === 'relearning');
+  if (isLearningPhase) {
+    if (rating === 1) {
+      // Again → restart from step 0
+      e.state = wasRelearning ? 'relearning' : 'learning';
+      e.step  = 0;
+      e.due   = Date.now() + steps[0] * 60000;
+      srsQueue.push(k);
+
+    } else if (rating === 2) {
+      // Hard → repeat current step (no progress)
+      e.step  = curStep; // stay on same step
+      e.due   = Date.now() + steps[Math.min(curStep, steps.length - 1)] * 60000;
+      srsQueue.push(k);
+
+    } else if (rating === 3) {
+      // Good → advance to next step or graduate
+      if (curStep < steps.length - 1) {
+        e.step  = curStep + 1;
+        e.due   = Date.now() + steps[e.step] * 60000;
+        srsQueue.push(k);
+      } else {
+        // Graduate to review
+        e.state    = 'review';
+        e.interval = SRS_GRAD_INTERVAL;
+        e.due      = srsAddDays(SRS_GRAD_INTERVAL);
+      }
+
+    } else {
+      // Easy → graduate immediately with larger interval
+      e.state = 'review';
+      if (wasRelearning) {
+        // Relearning easy: boost current interval
+        e.interval = Math.max(1, Math.round(e.interval * SRS_EASY_BONUS));
+      } else {
+        // New/learning easy: jump to easy interval
+        e.interval = SRS_EASY_INTERVAL;
+        e.ease     = Math.min(3, e.ease + 0.15);
+      }
+      e.due = srsAddDays(e.interval);
+    }
+
+  } else {
+    // ── Review card ────────────────────────────────────────────
+    if (rating === 1) {
+      // Again → lapse into relearning
+      e.lapses++;
+      e.ease     = Math.max(SRS_MIN_EASE, e.ease - 0.2);
+      e.interval = Math.max(1, Math.round(e.interval * 0.5));
+      e.state    = 'relearning';
+      e.step     = 0;
+      e.due      = Date.now() + SRS_RELEARN_STEPS[0] * 60000;
+      srsQueue.push(k);
+
+    } else {
+      // Hard / Good / Easy
+      var iv;
+      if (rating === 2) {
+        iv = Math.max(e.interval + 1, Math.round(e.interval * SRS_HARD_FACTOR));
+        e.ease = Math.max(SRS_MIN_EASE, e.ease - 0.15);
+      } else if (rating === 3) {
+        iv = Math.max(e.interval + 1, Math.round(e.interval * e.ease));
+      } else {
+        iv = Math.max(e.interval + 1, Math.round(e.interval * e.ease * SRS_EASY_BONUS));
+        e.ease = Math.min(3, e.ease + 0.15);
+      }
+      e.interval = iv;
+      e.due      = srsAddDays(iv);
+    }
+  }
+
+  saveSession();
+  srsCardIdx++;
+  showSRSCard();
+}
+
+/* ── DECK FILTER (study set) ────────────────────────────────── */
+let deckFilter='all';
+let customKanji=new Set();
+/* ── STUDY SET FILTER ───────────────────────────────────────────
+   deckFilter: 'all' | 'custom' | Set of {'neutral','learning','known'}
+   Multi-select: up to 2 status filters at once.
+   'All' and 'Custom' are single-selection modes that clear status selections.
+─────────────────────────────────────────────────────────────── */
+let activeStatusFilters=new Set(); // holds 'neutral','learning','known'
+
+function setDeckFilter(f,btn){
+  // 'all' or 'custom' — clears multi-select
+  deckFilter=f;
+  activeStatusFilters.clear();
+  document.querySelectorAll('.deck-filter-row .filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('custom-panel').style.display=(f==='custom')?'block':'none';
+  if(f==='custom'){buildCustomPanel();return;}
+  applyDeckFilter();
+}
+
+function toggleStatusFilter(status){
+  // Deactivate 'all'/'custom' mode
+  deckFilter='status';
+  document.getElementById('ds-all').classList.remove('on');
+  document.getElementById('ds-custom').classList.remove('on');
+  document.getElementById('custom-panel').style.display='none';
+
+  if(activeStatusFilters.has(status)){
+    // Deselect
+    activeStatusFilters.delete(status);
+    document.getElementById('ds-'+status.replace('learning','learn')).classList.remove('on');
+  } else {
+    // Select — enforce max 2
+    if(activeStatusFilters.size>=2){
+      // Remove the first one selected
+      const oldest=[...activeStatusFilters][0];
+      activeStatusFilters.delete(oldest);
+      document.getElementById('ds-'+oldest.replace('learning','learn')).classList.remove('on');
+    }
+    activeStatusFilters.add(status);
+    document.getElementById('ds-'+status.replace('learning','learn')).classList.add('on');
+  }
+
+  // If nothing selected, fall back to All
+  if(activeStatusFilters.size===0){
+    deckFilter='all';
+    document.getElementById('ds-all').classList.add('on');
+  }
+  applyDeckFilter();
+}
+
+function applyDeckFilter(){
+  let base=filterCat==='all'?[...KANJI]:KANJI.filter(k=>k.cat===filterCat);
+  if(deckFilter==='status'&&activeStatusFilters.size>0){
+    deck=base.filter(k=>{
+      const isKnown=known.has(k.k);
+      const isLearning=learning.has(k.k);
+      const isNeutral=!isKnown&&!isLearning;
+      return (activeStatusFilters.has('known')&&isKnown)
+          || (activeStatusFilters.has('learning')&&isLearning)
+          || (activeStatusFilters.has('neutral')&&isNeutral);
+    });
+  } else if(deckFilter==='custom'){
+    deck=base.filter(k=>customKanji.has(k.k));
+  } else {
+    deck=base; // 'all'
+  }
+  idx=0; resetMode();
+}
+
+function updateDeckFilterCounts(){
+  const b=filterCat==='all'?KANJI:KANJI.filter(k=>k.cat===filterCat);
+  const nKnown=b.filter(k=>known.has(k.k)).length;
+  const nLearn=b.filter(k=>learning.has(k.k)).length;
+  const nNeutral=b.filter(k=>!known.has(k.k)&&!learning.has(k.k)).length;
+  const dsAllN=document.getElementById('ds-all-n');
+  const dsNeutralN=document.getElementById('ds-neutral-n');
+  const dsLearnN=document.getElementById('ds-learn-n');
+  const dsKnownN=document.getElementById('ds-known-n');
+  if(dsAllN) dsAllN.textContent=b.length;
+  if(dsNeutralN) dsNeutralN.textContent=nNeutral;
+  if(dsLearnN) dsLearnN.textContent=nLearn;
+  if(dsKnownN) dsKnownN.textContent=nKnown;
+}
+function buildCustomPanel(){
+  const grid=document.getElementById('csg');
+  grid.innerHTML='';
+  const base=filterCat==='all'?KANJI:KANJI.filter(k=>k.cat===filterCat);
+  base.forEach(k=>{
+    const t=document.createElement('div');
+    t.className='csg-tile'+(customKanji.has(k.k)?' selected':'')
+      +(known.has(k.k)?' status-known':learning.has(k.k)?' status-learning':'');
+    t.textContent=k.k;
+    t.title=k.mean;
+    t.onclick=()=>{
+      customKanji.has(k.k)?customKanji.delete(k.k):customKanji.add(k.k);
+      t.classList.toggle('selected');
+    };
+    grid.appendChild(t);
+  });
+}
+function applyCustom(){
+  document.getElementById('custom-panel').style.display='none';
+  applyDeckFilter();
+}
+
+/* ── CARD SLIDER ────────────────────────────────────────────── */
+function sliderNav(v){
+  idx=parseInt(v);
+  const card=document.getElementById('card');
+  card.classList.remove('flipped');
+  flipped=false;
+  document.getElementById('rate-btns').style.display='none';
+  showCard();
+}
+function syncSlider(){
+  const sl=document.getElementById('card-slider');
+  sl.max=Math.max(0,deck.length-1);
+  sl.value=idx;
+}
+
+/* ── KANJI MOSAIC (LIST MODE) ───────────────────────────────── */
+let listView='all';
+let listStatus='all';
+
+function setListView(v,btn){
+  listView=v;
+  document.querySelectorAll('#list-mode .filter-btn').forEach(b=>b.classList.remove('on'));
+  // re-activate correct status btn
+  const sBtn=document.getElementById('list-status-'+listStatus);
+  if(sBtn)sBtn.classList.add('on');
+  btn.classList.add('on');
+  renderMosaic();
+}
+function setListStatus(v,btn){
+  listStatus=v;
+  document.querySelectorAll('#list-mode .filter-btn').forEach(b=>b.classList.remove('on'));
+  const vBtn=document.getElementById('list-view-'+listView);
+  if(vBtn)vBtn.classList.add('on');
+  btn.classList.add('on');
+  renderMosaic();
+}
+
+// double-tap detection
+let lastTap={k:null,t:0};
+function handleTileTap(k){
+  const now=Date.now();
+  if(lastTap.k===k.k&&now-lastTap.t<400){
+    // double-tap: cycle neutral → learning → known → neutral
+    const kk=k.k;
+    if(known.has(kk)){known.delete(kk);learning.delete(kk);}
+    else if(learning.has(kk)){known.add(kk);learning.delete(kk);}
+    else{learning.add(kk);}
+    updateStats(); updateDeckFilterCounts(); saveSession();
+    renderMosaic();
+    lastTap={k:null,t:0};
+  } else {
+    lastTap={k:k.k,t:now};
+  }
+}
+
+function renderMosaic(){
+  const mosaic=document.getElementById('kanji-mosaic');
+  mosaic.innerHTML='';
+
+  let items=KANJI;
+  // category filter
+  const catFilter=filterCat!=='all'?filterCat:(listView!=='all'?listView:null);
+  if(catFilter) items=items.filter(k=>k.cat===catFilter);
+  // status filter
+  if(listStatus==='neutral') items=items.filter(k=>!known.has(k.k)&&!learning.has(k.k));
+  else if(listStatus==='learning') items=items.filter(k=>learning.has(k.k));
+  else if(listStatus==='known') items=items.filter(k=>known.has(k.k));
+
+  if(!items.length){
+    mosaic.innerHTML='<div style="font-size:13px;color:var(--txt3);padding:1rem">No kanji match the selected filters.</div>';
+    return;
+  }
+
+  items.forEach(k=>{
+    const tile=document.createElement('div');
+    const statusCls=known.has(k.k)?' status-known':learning.has(k.k)?' status-learning':'';
+    tile.className='km-tile'+statusCls;
+    tile.dataset.k=k.k;
+    tile.dataset.cat=k.cat;
+
+    let badge='';
+    if(known.has(k.k)) badge='<span class="km-badge b-known">Got it</span>';
+    else if(learning.has(k.k)) badge='<span class="km-badge b-learning">Learning</span>';
+
+    tile.innerHTML=
+      '<span class="km-k">'+k.k+'</span>'+
+      '<span class="km-mean">'+k.mean+'</span>'+
+      '<span class="km-read">ON: '+k.on+'<br>KUN: '+k.kun+'</span>'+
+      badge;
+
+    tile.addEventListener('click',()=>handleTileTap(k));
+    tile.addEventListener('touchend',e=>{e.preventDefault();handleTileTap(k);});
+
+    mosaic.appendChild(tile);
+  });
+}
+
+/* ── EXTEND setMode to handle new modes ────────────────────────── */
+/* ── COMING SOON MODAL ──────────────────────────────────────── */
+function showCS(title, msg){
+  document.getElementById('cs-title').textContent=title;
+  document.getElementById('cs-msg').textContent=msg;
+  document.getElementById('cs-overlay').classList.add('open');
+}
+function closeCS(e){
+  if(e.target===document.getElementById('cs-overlay'))
+    document.getElementById('cs-overlay').classList.remove('open');
+}
+
+/* ── INFO ACCORDION ─────────────────────────────────────────── */
+function toggleInfo(h3el){
+  const body=document.getElementById('info-body');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  h3el.classList.toggle('open',!isOpen);
+}
+function toggleSection(bodyId,arrowId){
+  const body=document.getElementById(bodyId);
+  const arrow=document.getElementById(arrowId);
+  const isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+  if(arrow)arrow.style.transform=isOpen?'':'rotate(180deg)';
+}
+
+/* ── SHUFFLE STATE ──────────────────────────────────────────── */
+let isShuffled=false;
+let originalDeck=[...deck];
+function toggleShuffle(){
+  const btn=document.getElementById('shuffle-btn');
+  const ubtn=document.getElementById('unshuffle-btn');
+  if(isShuffled){
+    deck=[...originalDeck];
+    isShuffled=false;
+    btn.textContent='Shuffle';
+    btn.classList.remove('primary');
+    if(ubtn)ubtn.style.display='none';
+  } else {
+    originalDeck=[...deck];
+    for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+    isShuffled=true;
+    btn.textContent='Shuffled';
+    btn.classList.add('primary');
+    if(ubtn)ubtn.style.display='inline-flex';
+  }
+  idx=0; showCard(); syncSlider();
+}
+
+/* ── LOCAL PROFILE ───────────────────────────────────────────── */
+// A lightweight name-only local profile stored in localStorage.
+// No passwords, no server, no real accounts — just a name for the pill UI.
+const SESSION_KEY='n4kf_session';
+let currentUser=null;
+
+function doLogin(){
+  const name=document.getElementById('login-name').value.trim();
+  if(!name){document.getElementById('login-msg').textContent='Please enter a name.';return;}
+  currentUser={name};
+  try{localStorage.setItem(SESSION_KEY,JSON.stringify(currentUser));}catch(e){}
+  closeLogin();
+}
+function continueGuest(){
+  currentUser=null;
+  try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  closeLogin();
+}
+function doLogout(){
+  currentUser=null;
+  try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  document.getElementById('user-pill').style.display='none';
+}
+function renameUser(evt){
+  evt.stopPropagation();
+  const overlay=document.getElementById('rename-overlay');
+  const input=document.getElementById('rename-input');
+  if(input) input.value='';
+  document.getElementById('rename-msg').textContent='';
+  overlay.style.display='flex';
+  if(input) setTimeout(()=>input.focus(),50);
+}
+function doRename(){
+  const input=document.getElementById('rename-input');
+  const name=(input?input.value.trim():'');
+  if(!name){document.getElementById('rename-msg').textContent='Please enter a name.';return;}
+  currentUser={name};
+  try{localStorage.setItem(SESSION_KEY,JSON.stringify(currentUser));}catch(e){}
+  document.getElementById('user-avatar').textContent=name[0].toUpperCase();
+  document.getElementById('user-name-label').textContent=name;
+  document.getElementById('rename-overlay').style.display='none';
+}
+function closeLogin(){
+  document.getElementById('login-overlay').style.display='none';
+  if(currentUser){
+    const pill=document.getElementById('user-pill');
+    pill.style.display='flex';
+    document.getElementById('user-avatar').textContent=currentUser.name[0].toUpperCase();
+    document.getElementById('user-name-label').textContent=currentUser.name;
+  }
+  loadSession();
+  updateStats();
+  updateDeckFilterCounts();
+}
+function showLoginOverlay(){
+  document.getElementById('login-overlay').style.display='flex';
+}
+
+/* ── NOTIFY ME (donate) ─────────────────────────────────────── */
+function submitNotify(){
+  const el=document.getElementById('notify-email');
+  const msg=document.getElementById('notify-msg');
+  const btn=document.querySelector('[onclick="submitNotify()"]');
+  const email=el.value.trim();
+  if(!email||!email.includes('@')){
+    msg.className='err';msg.textContent='Please enter a valid email.';return;
+  }
+  msg.className='';msg.textContent='Sending...';
+  if(btn)btn.disabled=true;
+  // Submit to JotForm
+  const formData=new FormData();
+  formData.append('q4_email',email); // JotForm field name — update if needed
+  fetch('https://submit.jotform.com/submit/260868394248875',{
+    method:'POST',
+    body:formData,
+    mode:'no-cors' // JotForm requires no-cors
+  }).then(()=>{
+    el.value='';
+    msg.className='ok';
+    msg.textContent='✓ Got it! You\'ll be notified at '+email;
+    if(btn)btn.disabled=false;
+  }).catch(()=>{
+    // no-cors fetch always resolves — this catch is for network errors only
+    el.value='';
+    msg.className='ok';
+    msg.textContent='✓ Got it! You\'ll be notified at '+email;
+    if(btn)btn.disabled=false;
+  });
+}
+
+/* ── SHARE ──────────────────────────────────────────────────── */
+function shareApp(){
+  const url='https://vik-fba.github.io/Vik-s-N4-Kanji/';
+  const btn=document.getElementById('share-btn');
+  function showFeedback(ok){
+    if(!btn)return;
+    const orig=btn.innerHTML;
+    if(ok){
+      btn.innerHTML='&#10003; Copied!';
+      btn.style.background='var(--bg-ok)';
+      btn.style.color='var(--txt-ok)';
+      btn.style.borderColor='var(--brd-ok)';
+    } else {
+      btn.innerHTML='&#10007; Failed';
+      btn.style.background='var(--bg-err)';
+      btn.style.color='var(--txt-err)';
+      btn.style.borderColor='var(--brd-err)';
+    }
+    setTimeout(()=>{
+      btn.innerHTML=orig;
+      btn.style.background='';
+      btn.style.color='';
+      btn.style.borderColor='';
+    },2200);
+  }
+  function copyToClipboard(){
+    if(navigator.clipboard&&window.isSecureContext){
+      navigator.clipboard.writeText(url).then(()=>showFeedback(true)).catch(()=>fallbackCopy());
+    } else {
+      fallbackCopy();
+    }
+  }
+  function fallbackCopy(){
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=url;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta);ta.focus();ta.select();
+      const ok=document.execCommand('copy');
+      document.body.removeChild(ta);
+      showFeedback(ok);
+    }catch(e){showFeedback(false);}
+  }
+  // Use native share only on touch devices (mobile); desktop gets clipboard
+  const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile&&navigator.share){
+        navigator.share({title:"Vik's Kanji (N4)",text:"Free N5 kanji flashcard tool — 118 kanji, SRS, quiz & match modes.",url})
+      .catch(()=>copyToClipboard());
+  } else {
+    copyToClipboard();
+  }
+}
+
+/* ── PWA INSTALL BANNER ─────────────────────────────────────── */
+function initPWA(){
+  if(localStorage.getItem('pwa_dismissed'))return;
+  const banner=document.getElementById('pwa-banner');
+  const msg=document.getElementById('pwa-banner-msg');
+  const ua=navigator.userAgent;
+  const isIOS=/iPad|iPhone|iPod/.test(ua)&&!window.MSStream;
+  const isAndroid=/Android/.test(ua);
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  if(isStandalone)return; // already installed
+  if(isIOS){
+    msg.textContent='Tap the Share button ↑ then "Add to Home Screen"';
+    banner.classList.remove('hidden');
+  } else if(isAndroid){
+    msg.textContent='Tap the menu ⋮ then "Add to Home Screen" or "Install app"';
+    banner.classList.remove('hidden');
+  }
+  // Desktop: skip (not as useful)
+}
+function dismissPWA(){
+  document.getElementById('pwa-banner').classList.add('hidden');
+  localStorage.setItem('pwa_dismissed','1');
+}
+
+/* ── CARD STATUS OUTLINES ────────────────────────────────────── */
+function showCard(){
+  if(!deck.length)return;
+  const k=deck[idx];
+  const card=document.getElementById('card');
+  card.style.transition='none';
+  card.classList.remove('flipped');
+  void card.offsetWidth;
+  document.getElementById('front-kanji').textContent=k.k;
+  document.getElementById('front-cat').textContent=(k.cat==='numbers'?'numbers / quantities':k.cat);
+  document.getElementById('back-emoji').textContent=k.emoji;
+  document.getElementById('back-kanji').textContent=k.k;
+  document.getElementById('back-meaning').textContent=k.mean;
+  document.getElementById('back-readings').innerHTML=
+    '<span class="pill pill-on">ON: '+k.on+'</span>'+
+    '<span class="pill pill-kun">KUN: '+k.kun+'</span>';
+  document.getElementById('back-examples').textContent=k.ex;
+  document.getElementById('back-ex-meaning').textContent=k.exm;
+  requestAnimationFrame(()=>{ card.style.transition=''; });
+  flipped=false;
+  document.getElementById('rate-btns').style.display='none';
+  document.getElementById('nav-pos').textContent=(idx+1)+' / '+deck.length;
+  // Show status outline on card faces
+  const faces=card.querySelectorAll('.card-face');
+  faces.forEach(f=>{
+    f.classList.remove('status-known','status-learning');
+    if(known.has(k.k)) f.classList.add('status-known');
+    else if(learning.has(k.k)) f.classList.add('status-learning');
+  });
+  updateProgress();
+  syncSlider();
+}
+
+/* ── INIT ───────────────────────────────────────────────────── */
+document.querySelectorAll('#quiz-type-checklist input').forEach(c=>{
+  c.addEventListener('change', updateStartBtn);
+});
+updateStartBtn();
+// Always load shared progress first so counts are correct from the start
+loadSession();
+// Then check for a saved name profile
+try{
+  const sess=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+  if(sess&&sess.name){
+    currentUser=sess;
+    const pill=document.getElementById('user-pill');
+    pill.style.display='flex';
+    document.getElementById('user-avatar').textContent=sess.name[0].toUpperCase();
+    document.getElementById('user-name-label').textContent=sess.name;
+    // no login overlay needed — user already has a profile
+  } else {
+    showLoginOverlay();
+  }
+}catch(e){showLoginOverlay();}
+updateDeckFilterCounts();
+showCard();
+syncSlider();
+updateStats();
+initPWA();
+
+/* ── SERVICE WORKER REGISTRATION ─────────────────────────── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      console.log('SW registered:', reg.scope);
+    }).catch(err=>{
+      console.log('SW registration failed (open as file):', err.message);
+    });
+  });
+}
+</script>
+</body>
+</html>
